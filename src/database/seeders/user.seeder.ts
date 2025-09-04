@@ -20,7 +20,7 @@ export class UserSeeder implements OnModuleInit {
       console.log('Seeding users...');
       const users: Partial<User>[] = [
         {
-          id: 'usr_1234567890',
+          id: 'user_123',
           externalId: 'user_123',
           email: 'admin@example.com',
           document: {
