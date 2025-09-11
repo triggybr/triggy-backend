@@ -14,18 +14,11 @@ export const handler = async (
       return createErrorResponse(400, 'Path parameter "id" is required');
     }
 
-    let payload: any = null;
-    if (event.body) {
-      try {
-        payload = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
-      } catch {
-        payload = event.body;
-      }
-    }
+    const payload = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
 
     const messageBody = {
-      webhookCode: id,
-      body: payload,
+      urlCode: id,
+      payload,
     };
 
     if (!queueUrl) {
@@ -36,7 +29,7 @@ export const handler = async (
       QueueUrl: queueUrl,
       MessageBody: JSON.stringify(messageBody),
       MessageAttributes: {
-        webhookCode: {
+        urlCode: {
           DataType: 'String',
           StringValue: id,
         },
@@ -47,7 +40,7 @@ export const handler = async (
 
     return createResponse(202, {
       message: 'Webhook enqueued',
-      webhookCode: id,
+      urlCode: id,
       messageId: result.MessageId,
     });
   } catch (error) {
