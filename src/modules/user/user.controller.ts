@@ -10,9 +10,9 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('webhook')
-  @ApiOperation({ summary: 'Create a new user from a Clerk webhook' })
-  @ApiResponse({ status: 201, description: 'User created successfully from webhook.' })
-  @ApiResponse({ status: 400, description: 'Invalid webhook data.' })
+  @ApiOperation({ summary: 'Criar novo usuário a partir de webhook do Clerk' })
+  @ApiResponse({ status: 201, description: 'Usuário criado com sucesso a partir do webhook.' })
+  @ApiResponse({ status: 400, description: 'Dados do webhook inválidos.' })
   @Public()
   @HttpCode(HttpStatus.CREATED)
   async createFromWebhook(@Body() webhookData: CreateUserWebhookDto) {

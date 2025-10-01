@@ -7,6 +7,7 @@ import { ProcessPaymentDto } from './dto/process-payment.dto';
 import { ActiveUserExternalId } from 'src/common/decorators/active-user-id.decorator';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ConfirmPaymentDto } from './dto/webhook.dto';
+import { ApplyCouponResponseDto, ProcessPaymentResponseDto } from './dto/checkout-responses.dto';
 
 @ApiTags('Checkout')
 @Controller('checkout')
@@ -16,11 +17,19 @@ export class CheckoutController {
   constructor(private readonly checkoutService: CheckoutService) {}
 
   @Post('apply-coupon')
-  @ApiOperation({ summary: 'Apply a coupon to a plan' })
-  @ApiResponse({ status: 200, description: 'Coupon applied successfully.' })
-  @ApiResponse({ status: 400, description: 'Invalid coupon or plan.' })
+  @ApiOperation({ summary: 'Aplicar cupom de desconto' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Cupom processado com sucesso.',
+    type: ApplyCouponResponseDto
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Cupom inválido ou dados incorretos.',
+    type: ApplyCouponResponseDto
+  })
   @HttpCode(HttpStatus.OK)
-  async applyCoupon(@Body() dto: ApplyCouponDto) {
+  async applyCoupon(@Body() dto: ApplyCouponDto): Promise<ApplyCouponResponseDto> {
     try {
       return this.checkoutService.applyCoupon(dto);
     } catch (error) {
@@ -30,14 +39,27 @@ export class CheckoutController {
   }
 
   @Post('process-payment')
-  @ApiOperation({ summary: 'Process a payment for a plan' })
-  @ApiResponse({ status: 200, description: 'Payment processed successfully.' })
-  @ApiResponse({ status: 400, description: 'Payment failed.' })
+  @ApiOperation({ summary: 'Processar pagamento da assinatura' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Pagamento processado com sucesso.',
+    type: ProcessPaymentResponseDto
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Dados de pagamento inválidos.',
+    type: ProcessPaymentResponseDto
+  })
+  @ApiResponse({ 
+    status: 402, 
+    description: 'Pagamento recusado.',
+    type: ProcessPaymentResponseDto
+  })
   @HttpCode(HttpStatus.OK)
-  async processPayment(@ActiveUserExternalId() externalId: string, @Body() dto: ProcessPaymentDto, @Req() req: Request) {
+  async processPayment(@ActiveUserExternalId() externalId: string, @Body() dto: ProcessPaymentDto, @Req() req: Request): Promise<ProcessPaymentResponseDto> {
     try {
       const clientIp = req.ip || req.socket.remoteAddress || '0.0.0.0';
-      await this.checkoutService.processPayment(externalId, dto, clientIp);
+      return this.checkoutService.processPayment(externalId, dto, clientIp);
     } catch (error) {
       this.logger.error(error)
       throw error
@@ -45,8 +67,8 @@ export class CheckoutController {
   }
 
   @Post('confirm-payment')
-  @ApiOperation({ summary: 'Confirm a payment from a webhook' })
-  @ApiResponse({ status: 200, description: 'Payment confirmation received.' })
+  @ApiOperation({ summary: 'Confirmar pagamento a partir de webhook' })
+  @ApiResponse({ status: 200, description: 'Confirmação de pagamento recebida.' })
   @Public()
   @HttpCode(HttpStatus.OK)
   async confirmPayment(@Body() dto: ConfirmPaymentDto) {

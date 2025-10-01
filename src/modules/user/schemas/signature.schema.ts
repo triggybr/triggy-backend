@@ -14,6 +14,9 @@ export class Signature {
   @Prop()
   planId: string;
 
+  @Prop()
+  last4: string;
+
   @Prop({ unique: true })
   externalId: string;
 

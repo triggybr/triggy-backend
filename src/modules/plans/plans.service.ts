@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Plan, PlanDocument } from './schemas/plan.schema';
+import { formatBRL } from 'src/common/utils/format-brl';
 
 @Injectable()
 export class PlansService {
@@ -12,6 +13,7 @@ export class PlansService {
     const plans = docs.map((document) => ({
       id: document.id,
       name: document.name,
+      price: document.priceValue,
       priceValue: document.priceValue,
       icon: document.icon,
       description: document.description,

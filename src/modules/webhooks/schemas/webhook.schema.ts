@@ -43,6 +43,12 @@ export class Webhook {
 
   @Prop()
   updatedAt: string;
+
+  @Prop({ default: false })
+  isRetry: boolean;
+
+  @Prop()
+  originalWebhookId?: string;
 }
 
 export const WebhookSchema = SchemaFactory.createForClass(Webhook); 

@@ -11,6 +11,7 @@ import { Signature, SignatureSchema } from '../user/schemas/signature.schema';
 import { EventMappingOrchestrator } from './services/event-mapping.orchestrator';
 import { DESTINATION_MAPPERS } from './constants/tokens';
 import { LastlinkAbandonedCartToHotzappCreateProductMapper } from './mappers/destination-mappers/lastlink-abandoned-cart__hotzapp-create-product.mapper';
+import { User, UserSchema } from '../user/schemas/user.schema';
 
 const mappersProviders = [
   {
@@ -37,6 +38,7 @@ const providers = [
       { name: UserIntegration.name, schema: UserIntegrationSchema },
       { name: UserStats.name, schema: UserStatsSchema },
       { name: Signature.name, schema: SignatureSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     ConfigModule,
   ],

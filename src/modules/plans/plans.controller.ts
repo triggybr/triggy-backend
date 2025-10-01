@@ -1,7 +1,10 @@
 import { Controller, Get, Logger, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { PlansService } from './plans.service';
 import { GetPlansQueryDto } from './dto/get-plans-query.dto';
+import { PlansResponseDto } from './dto/plans-response.dto';
 
+@ApiTags('Plans')
 @Controller('plans')
 export class PlansController {
   private logger = new Logger(PlansController.name)
@@ -9,7 +12,15 @@ export class PlansController {
   constructor(private readonly plansService: PlansService) {}
 
   @Get()
-  async getPlans(@Query() query: GetPlansQueryDto) {
+  @ApiOperation({ summary: 'Buscar todos os planos disponíveis' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de planos retornada com sucesso.',
+    type: PlansResponseDto
+  })
+  @ApiResponse({ status: 500, description: 'Erro interno do servidor.' })
+  @ApiQuery({ name: 'includeFeatures', required: false, type: Boolean, description: 'Incluir lista detalhada de features' })
+  async getPlans(@Query() query: GetPlansQueryDto): Promise<PlansResponseDto> {
     try {
       return this.plansService.getPlans(!!query.includeFeatures);
     } catch (error) {
@@ -17,4 +28,4 @@ export class PlansController {
       throw error
     }
   }
-} 
+}   

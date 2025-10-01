@@ -1,18 +1,18 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { ErrorCodes } from 'src/common/codes';
+import { uuidGenerator } from 'src/common/utils/uuid-generator';
+import { AsaasService } from '../asaas/asaas.service';
+import { UserStats, UserStatsDocument } from '../integrations/schemas/user-stats.schema';
+import { Plan, PlanDocument } from '../plans/schemas/plan.schema';
+import { Signature, SignatureDocument } from '../user/schemas/signature.schema';
+import { User, UserDocument } from '../user/schemas/user.schema';
 import { ApplyCouponDto } from './dto/apply-coupon.dto';
 import { ProcessPaymentDto } from './dto/process-payment.dto';
-import { Coupon, CouponDocument } from './schemas/coupon.schema';
-import { Plan, PlanDocument } from '../plans/schemas/plan.schema';
-import { AsaasService } from '../asaas/asaas.service';
-import { Order, OrderDocument } from './schemas/order.schema';
-import { User, UserDocument } from '../user/schemas/user.schema';
-import { uuidGenerator } from 'src/common/utils/uuid-generator';
-import { ErrorCodes } from 'src/common/codes';
 import { ConfirmPaymentDto } from './dto/webhook.dto';
-import { Signature, SignatureDocument } from '../user/schemas/signature.schema';
-import { UserStats, UserStatsDocument } from '../integrations/schemas/user-stats.schema';
+import { Coupon, CouponDocument } from './schemas/coupon.schema';
+import { Order, OrderDocument } from './schemas/order.schema';
 
 @Injectable()
 export class CheckoutService {
@@ -122,6 +122,7 @@ export class CheckoutService {
       id: uuidGenerator(),
       userId: user.id,
       planId: plan.id,
+      last4: input.paymentData.cardNumber.slice(-4),
       couponCode: input.couponCode,
       type: plan.name,
       priceValue: plan.priceValue,
@@ -162,6 +163,11 @@ export class CheckoutService {
 
     signature['externalId'] = subscription?.id,
     await this.signatureModel.create(signature);
+
+    return {
+      success: true,
+      message: 'Pagamento processado com sucesso',
+    };
   }
 
   async confirmPayment(dto: ConfirmPaymentDto) {

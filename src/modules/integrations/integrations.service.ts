@@ -6,6 +6,7 @@ import { uuidGenerator } from 'src/common/utils/uuid-generator';
 import { User, UserDocument } from '../user/schemas/user.schema';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
 import { FindAllUserIntegrationsQueryDto } from './dto/find-all-user-integrations';
+import { UpdateIntegrationDto } from './dto/update-integration.dto';
 import { Integration, IntegrationDocument } from './schemas/integration.schema';
 import { UserIntegration, UserIntegrationDocument } from './schemas/user-integration.schema';
 import { UserStats, UserStatsDocument } from './schemas/user-stats.schema';
@@ -19,7 +20,7 @@ export class IntegrationsService {
     @InjectModel(UserStats.name) private readonly userStatsModel: Model<UserStatsDocument>,
     @InjectModel(Integration.name) private readonly integrationModel: Model<IntegrationDocument>,
     @InjectModel(Signature.name) private readonly signatureModel: Model<SignatureDocument>,
-  ) {}
+  ) { }
 
   async createUserIntegration(externalId: string, dto: CreateIntegrationDto) {
     const user = await this.userModel.findOne({ externalId }).lean();
@@ -90,7 +91,48 @@ export class IntegrationsService {
       this.userIntegrationModel.countDocuments().lean(),
     ]);
 
-    return { integrations: items.map(this.mapUserIntegrationToResponse), total, limit: query.limit, offset: query.offset };
+    return {
+      integrations: items.map(this.mapUserIntegrationToResponse),
+      total,
+      limit: query.limit,
+      offset: query.offset
+    };
+  }
+
+  async updateUserIntegration(externalId: string, id: string, dto: UpdateIntegrationDto) {
+    const { name, status, destinationUrl } = dto;
+
+    const user = await this.userModel.findOne({ externalId }).lean();
+    if (!user) throw new NotFoundException({
+      message: 'User not found',
+      code: ErrorCodes.USER_NOT_FOUND,
+    });
+
+    const updateData: any = { updatedAt: new Date().toISOString() };
+
+    if (name) updateData.name = name;
+    if (status) {
+      updateData.status = {
+        value: status,
+        label: status === 'active' ? 'Ativo' : 'Inativo'
+      };
+    }
+    if (destinationUrl) {
+      updateData['destination.url'] = destinationUrl;
+    }
+
+    const updatedIntegration = await this.userIntegrationModel.findOneAndUpdate(
+      { id, userId: user.id },
+      { $set: updateData },
+      { new: true }
+    ).lean();
+
+    if (!updatedIntegration) throw new NotFoundException({
+      message: 'Integration not found',
+      code: ErrorCodes.INTEGRATION_NOT_FOUND
+    });
+
+    return this.mapUserIntegrationToResponse(updatedIntegration);
   }
 
   async removeUserIntegration(externalId: string, id: string) {
@@ -99,7 +141,7 @@ export class IntegrationsService {
       message: 'User not found',
       code: ErrorCodes.USER_NOT_FOUND,
     });
-    
+
     const item = await this.userIntegrationModel.findOneAndDelete({
       id,
       userId: user.id
@@ -112,20 +154,66 @@ export class IntegrationsService {
 
     await this.userStatsModel.updateOne({ id: item.userStatsId }, { $inc: { usedIntegrationQuota: -1 } });
 
-    return { 
-      id: item.id,
-      name: item.name,
-      deletedAt: new Date().toISOString(),
-      success: true,
+    return {
+      message: 'Integração excluída com sucesso'
     };
   }
 
   async getAvailableIntegrations(filter?: { source?: string }) {
     const query = {};
     if (filter?.source) query['platform'] = filter.source;
-    
+
     const integrations = await this.integrationModel.find(query).lean();
-    return { integrations: integrations.map(this.mapIntegrationToResponse) };
+
+    return {
+      integrations: integrations.map(this.mapIntegrationToResponse)
+    };
+  }
+
+  async findUserIntegrationById(externalId: string, id: string) {
+    const user = await this.userModel.findOne({ externalId }).lean();
+    if (!user) {
+      throw new NotFoundException({ message: 'User not found', code: ErrorCodes.USER_NOT_FOUND });
+    }
+
+    const integration = await this.userIntegrationModel.findOne({ userId: user.id, id }).lean();
+    if (!integration) {
+      throw new NotFoundException({ message: 'Integration not found', code: ErrorCodes.INTEGRATION_NOT_FOUND });
+    }
+
+    return this.mapUserIntegrationToResponse(integration);
+  }
+
+  async findIntegrations(externalId: string, filters: { status?: 'active' | 'inactive', source?: string, limit: number, offset: number }) {
+    const user = await this.userModel.findOne({ externalId }).lean();
+    if (!user) {
+      throw new NotFoundException({ message: 'User not found', code: ErrorCodes.USER_NOT_FOUND });
+    }
+
+    const query: any = { userId: user.id };
+    
+    if (filters.status) {
+      query['status.value'] = filters.status;
+    }
+    
+    if (filters.source) {
+      query['source.platform'] = filters.source;
+    }
+
+    const integrations = await this.userIntegrationModel
+      .find(query)
+      .limit(filters.limit)
+      .skip(filters.offset)
+      .lean();
+
+    const total = await this.userIntegrationModel.countDocuments(query);
+
+    return {
+      integrations: integrations.map(integration => this.mapUserIntegrationToResponse(integration)),
+      total,
+      limit: filters.limit,
+      offset: filters.offset
+    };
   }
 
   private mapUserIntegrationToResponse(integration) {
