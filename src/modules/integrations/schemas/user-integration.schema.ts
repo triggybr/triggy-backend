@@ -36,8 +36,7 @@ export class UserIntegration {
     color?: string;
     action: string;
     actionDescription?: string;
-    url?: string;
-    apiKey?: string;
+    additionalFields?: Array<{ name: string; value: string }>;
   };
 
   @Prop({ type: Object })

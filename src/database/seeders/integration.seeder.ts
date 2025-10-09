@@ -34,8 +34,7 @@ export class IntegrationSeeder implements OnModuleInit {
                   platform: 'astromembers',
                   name: 'AstroMembers',
                   color: '#6f42c1',
-                  requiresUrl: true,
-                  requiresApiKey: true,
+                  additionalFields: ['url', 'api_key'],
                   description: 'Criar membro na plataforma AstroMembers',
                   actions: [
                     {
@@ -52,8 +51,7 @@ export class IntegrationSeeder implements OnModuleInit {
                   platform: 'discord',
                   name: 'Discord',
                   color: '#5865F2',
-                  requiresUrl: true,
-                  requiresApiKey: false,
+                  additionalFields: ['url', 'api_key'],
                   description: 'Envia notificação para o Discord',
                   actions: [
                     {
@@ -76,8 +74,7 @@ export class IntegrationSeeder implements OnModuleInit {
                   platform: 'astromembers',
                   name: 'AstroMembers',
                   color: '#6f42c1',
-                  requiresUrl: true,
-                  requiresApiKey: true,
+                  additionalFields: ['url', 'api_key'],
                   actions: [
                     {
                       name: 'remove_member',

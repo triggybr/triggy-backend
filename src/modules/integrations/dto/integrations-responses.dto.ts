@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+class AdditionalFields {
+  @ApiProperty({ example: 'apiKey' })
+  name: string;
+  
+  @ApiProperty({ example: 'Sua chave de API' })
+  value: string;
+}
 export class PlatformDto {
   @ApiProperty({ example: 'hotmart' })
   platform: string;
@@ -9,9 +16,6 @@ export class PlatformDto {
 
   @ApiProperty({ example: 'bg-orange-600 dark:bg-orange-500' })
   color: string;
-
-  @ApiProperty({ example: 'https://app.astronmembers.com/integrations/webhooks', required: false })
-  url?: string;
 
   @ApiProperty({ example: 'Plataforma de produtos digitais', required: false })
   description?: string;
@@ -25,11 +29,11 @@ export class PlatformDto {
   @ApiProperty({ example: 'create_member', required: false })
   action?: string;
 
+  @ApiProperty({ type: [AdditionalFields], required: false })
+  additionalFields?: AdditionalFields[];
+
   @ApiProperty({ example: 'Criar membro na área', required: false })
   actionDescription?: string;
-
-  @ApiProperty({ example: null, required: false })
-  apiKey?: string;
 }
 
 export class IntegrationStatusDto {

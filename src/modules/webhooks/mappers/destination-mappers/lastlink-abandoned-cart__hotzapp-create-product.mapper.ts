@@ -37,17 +37,14 @@ export class LastlinkAbandonedCartToHotzappCreateProductMapper implements Destin
       line_items: lineItems,
     };
 
-    const { url, apiKey } = integration.destination || {};
-    if (!url || !apiKey) {
-      throw new Error('Missing destination URL or API key for Hotzapp');
-    }
+    const urlField = integration.destination.additionalFields?.find((field) => field.name.toLowerCase() === 'url');
+    const url = urlField?.value;
 
     const now = new Date()
     const res = await fetch(`${url}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify(productData),
     });

@@ -29,6 +29,18 @@ export class SourceDto {
   eventDescription?: string | null;
 }
 
+class AdditionalFields {
+  @ApiProperty({ description: 'Nome do campo adicional.', example: 'channel_id' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+  
+  @ApiProperty({ description: 'Valor do campo adicional.', example: '1234567890' })
+  @IsString()
+  @IsNotEmpty()
+  value: string;
+}
+
 export class DestinationDto {
   @ApiProperty({ description: 'Plataforma de destino da integração.', example: 'discord' })
   @IsString()
@@ -40,15 +52,11 @@ export class DestinationDto {
   @IsNotEmpty()
   action: string;
 
-  @ApiProperty({ description: 'URL do webhook de destino.', example: 'https://webhook.site/12345', required: false })
+  @ApiProperty({ description: 'Campos adicionais necessários para a ação.', type: [AdditionalFields], required: false })
   @IsOptional()
-  @IsUrl()
-  url?: string | null;
-
-  @ApiProperty({ description: 'Chave de API para o serviço de destino.', example: 'your-api-key', required: false })
-  @IsOptional()
-  @IsString()
-  apiKey?: string | null;
+  @ValidateNested({ each: true })
+  @Type(() => AdditionalFields)
+  additionalFields?: AdditionalFields[];
 
   @ApiProperty({ description: 'Nome da plataforma de destino.', example: 'Discord', required: false })
   @IsOptional()

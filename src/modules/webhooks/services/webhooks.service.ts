@@ -23,7 +23,7 @@ export class WebhooksService {
     @InjectModel(Signature.name) private readonly signatureModel: Model<SignatureDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly eventMappingOrchestrator: EventMappingOrchestrator,
-  ) {}
+  ) { }
 
   async listWebhooks(listWebhooksDto: ListWebhooksDto) {
     const { page = 1, limit = 10, integrationId, status, startDate, endDate } = listWebhooksDto;
@@ -49,8 +49,8 @@ export class WebhooksService {
     ]);
 
     const integrationIds = [...new Set(webhooks.map(webhook => webhook.userIntegrationId).filter(Boolean))];
-    
-    const integrations = integrationIds.length > 0 
+
+    const integrations = integrationIds.length > 0
       ? await this.userIntegrationModel.find({ id: { $in: integrationIds } }).lean()
       : [];
 
@@ -103,12 +103,15 @@ export class WebhooksService {
 
     const now = new Date().toISOString();
 
+    const urlField = userIntegration.destination.additionalFields?.find((field) => field.name.toLowerCase() === 'url');
+    const url = urlField?.value;
+
     const webhook: Partial<Webhook> = {
       id: uuidGenerator(),
       userId,
       userIntegrationId: userIntegration.id,
       requestBody: JSON.stringify(payload),
-      endpoint: userIntegration.destination.url,
+      endpoint: url,
       method: 'POST',
       triggeredAt: now,
       updatedAt: now,
@@ -120,7 +123,7 @@ export class WebhooksService {
       webhook.responseBody = JSON.stringify(responseBody);
       webhook.responseStatus = responseStatus;
       webhook.responseTime = responseTime;
-      
+
       await this.userIntegrationModel.updateOne({ id: userIntegration.id }, { $inc: { successCount: 1 } }).lean();
     } catch (error) {
       const webhookError = {
@@ -151,10 +154,10 @@ export class WebhooksService {
     });
 
     const userId = user.id
-    
-    const originalWebhook = await this.webhookModel.findOne({ 
+
+    const originalWebhook = await this.webhookModel.findOne({
       id: webhookId,
-      userId: userId 
+      userId: userId
     }).lean();
 
     if (!originalWebhook) {
@@ -201,12 +204,15 @@ export class WebhooksService {
 
     const now = new Date().toISOString();
 
+    const urlField = userIntegration.destination.additionalFields?.find((field) => field.name.toLowerCase() === 'url');
+    const url = urlField?.value;
+
     const newWebhook: Partial<Webhook> = {
       id: uuidGenerator(),
       userId: userId,
       userIntegrationId: originalWebhook.userIntegrationId,
       requestBody: originalWebhook.requestBody,
-      endpoint: userIntegration.destination.url,
+      endpoint: url,
       method: originalWebhook.method,
       triggeredAt: now,
       updatedAt: now,

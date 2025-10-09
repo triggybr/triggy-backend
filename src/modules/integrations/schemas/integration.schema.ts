@@ -28,9 +28,8 @@ export class Integration {
       platform: string;
       name: string;
       color: string;
-      requiresUrl: boolean;
-      requiresApiKey: boolean;
       description?: string;
+      additionalFields: string[];
       actions: {
         name: string;
         description: string;
