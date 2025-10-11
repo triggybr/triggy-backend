@@ -25,8 +25,24 @@ export class DashboardService {
     }
 
     const signature = await this.signatureModel.findOne({ userId: user.id }).lean();
+
     if (!signature) {
-      throw new NotFoundException({ message: 'Signature not found', code: ErrorCodes.SIGNATURE_NOT_FOUND });
+      return {
+        stats: {
+          webhooksUsed: 0,
+          webhooksLimit: 0,
+          integrations: 0,
+          successRate: 0,
+        },
+        chartData: [],
+        recentActivities: [],
+        subscription: {
+          planName: 'Free',
+          planPrice: 0,
+          nextBillingDate: null,
+          status: 'active',
+        },
+      }
     }
 
     const [userStats, integrationsAgg, last7DaysAgg, recentWebhooks] = await Promise.all([
@@ -59,7 +75,7 @@ export class DashboardService {
       stats: {
         webhooksUsed,
         webhooksLimit,
-        integrationsCreated,
+        integrations: integrationsCreated,
         successRate,
       },
       chartData: webhooksLast7Days,

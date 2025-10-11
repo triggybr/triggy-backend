@@ -3,18 +3,20 @@ import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { PlansService } from './plans.service';
 import { GetPlansQueryDto } from './dto/get-plans-query.dto';
 import { PlansResponseDto } from './dto/plans-response.dto';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @ApiTags('Plans')
+@Public()
 @Controller('plans')
 export class PlansController {
   private logger = new Logger(PlansController.name)
 
-  constructor(private readonly plansService: PlansService) {}
+  constructor(private readonly plansService: PlansService) { }
 
   @Get()
   @ApiOperation({ summary: 'Buscar todos os planos disponíveis' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Lista de planos retornada com sucesso.',
     type: PlansResponseDto
   })

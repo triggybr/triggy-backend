@@ -8,7 +8,7 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 export class JwtAuthGuard implements CanActivate {
   private logger = new Logger(JwtAuthGuard.name)
 
-  constructor(private readonly reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -38,12 +38,13 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
+      const jwtKey = process.env.CLERK_JWT_KEY
       const tokenData = await verifyToken(token, {
-        secretKey: process.env.CLERK_SECRET_KEY
+        jwtKey: jwtKey
       });
 
       request.userId = tokenData.sub
-      
+
       return true;
     } catch (err) {
       this.logger.error(err)

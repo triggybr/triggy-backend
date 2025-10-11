@@ -6,9 +6,9 @@ import { FindAllUserIntegrationsQueryDto } from './dto/find-all-user-integration
 import { UpdateIntegrationDto } from './dto/update-integration.dto';
 import { IntegrationsService } from './integrations.service';
 import { Logger } from '@nestjs/common';
-import { 
-  IntegrationsResponseDto, 
-  IntegrationDto, 
+import {
+  IntegrationsResponseDto,
+  IntegrationDto,
   AvailableIntegrationsResponseDto,
   DeleteIntegrationResponseDto
 } from './dto/integrations-responses.dto';
@@ -18,7 +18,7 @@ import {
 export class IntegrationsController {
   private logger = new Logger(IntegrationsController.name)
 
-  constructor(private readonly integrationsService: IntegrationsService) {}
+  constructor(private readonly integrationsService: IntegrationsService) { }
 
   @Get()
   @ApiOperation({ summary: 'Buscar integrações do usuário' })
@@ -55,7 +55,7 @@ export class IntegrationsController {
     }
   }
 
-  @Get('user/:id')
+  @Get('/:id/user')
   @ApiOperation({ summary: 'Buscar integração por ID' })
   @ApiParam({ name: 'id', description: 'ID da integração' })
   @ApiResponse({ status: 200, description: 'Integração encontrada com sucesso.', type: IntegrationDto })
@@ -107,7 +107,7 @@ export class IntegrationsController {
     }
   }
 
-  @Put('/user/:id')
+  @Put('/:id/user')
   @ApiOperation({ summary: 'Atualizar integração' })
   @ApiParam({ name: 'id', description: 'ID da integração' })
   @ApiResponse({ status: 200, description: 'Integração atualizada com sucesso.', type: IntegrationDto })
@@ -124,7 +124,7 @@ export class IntegrationsController {
     }
   }
 
-  @Delete('/user/:id')
+  @Delete('/:id/user')
   @ApiOperation({ summary: 'Excluir integração' })
   @ApiParam({ name: 'id', description: 'ID da integração' })
   @ApiResponse({ status: 200, description: 'Integração excluída com sucesso.', type: DeleteIntegrationResponseDto })
