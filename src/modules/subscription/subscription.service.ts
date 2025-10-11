@@ -235,7 +235,7 @@ export class SubscriptionService {
                     priceDifference: priceDifference,
                     features,
                     newFeatures,
-                    recommended: isRecommended,
+                    popular: plan.popular,
                     billingCycle: 'monthly' as const,
                 };
             });

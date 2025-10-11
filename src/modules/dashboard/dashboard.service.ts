@@ -312,7 +312,23 @@ export class DashboardService {
 
     const signature = await this.signatureModel.findOne({ userId: user.id }).lean();
     if (!signature) {
-      throw new NotFoundException({ message: 'Signature not found', code: ErrorCodes.SIGNATURE_NOT_FOUND });
+      return {
+        planName: 'Free',
+        planPrice: 0,
+        nextBillingDate: null,
+        status: 'active',
+        billing: {
+          nextBillingDate: null,
+          amount: 0,
+          currency: 'BRL',
+          paymentMethod: {
+            type: 'card',
+            last4: '****',
+            brand: 'Visa'
+          }
+        },
+        billingHistory: includeBillingHistory ? [] : undefined
+      }
     }
 
     const nextBillingDate = signature.nextBillingDate.split('T')[0];
