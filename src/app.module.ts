@@ -12,6 +12,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { UserModule } from './modules/user/user.module';
 import { AsaasModule } from './modules/asaas/asaas.module';
 import { DatabaseModule } from './database/database.module';
+import { SubscriptionModule } from './modules/subscription/subscription.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { DatabaseModule } from './database/database.module';
     WebhooksModule,
     UserModule,
     AsaasModule,
+    SubscriptionModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
@@ -31,4 +33,4 @@ import { DatabaseModule } from './database/database.module';
     { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
   ],
 })
-export class AppModule {}
+export class AppModule { }

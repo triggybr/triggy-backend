@@ -1,0 +1,1984 @@
+openapi: 3.0.3
+info:
+  title: Triggy API
+  description: API para o sistema de webhooks Triggy
+  version: 2.2.0
+  contact:
+    name: Triggy Team
+    email: dev@triggy.dev
+
+servers:
+  - url: https://api.triggy.dev
+    description: Servidor de produção
+  - url: http://localhost:8000
+    description: Servidor de desenvolvimento
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Token JWT do Clerk
+  
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        data:
+          type: object
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - data
+        - success
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+
+    Platform:
+      type: object
+      properties:
+        platform:
+          type: string
+          description: "Identificador da plataforma (vem do backend, sem enum fixo)"
+          example: "hotmart"
+        name:
+          type: string
+          example: "Hotmart"
+        color:
+          type: string
+          example: "bg-orange-600 dark:bg-orange-500"
+        url:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://app.astronmembers.com/integrations/webhooks"
+        description:
+          type: string
+          nullable: true
+          example: "Plataforma de produtos digitais"
+        # Campos específicos para source platforms
+        event:
+          type: string
+          nullable: true
+          description: "Evento que ativa a integração (apenas para source)"
+          example: "purchase_completed"
+        eventDescription:
+          type: string
+          nullable: true
+          description: "Descrição legível do evento (apenas para source)"
+          example: "Compra finalizada com sucesso"
+        # Campos específicos para destination platforms  
+        action:
+          type: string
+          nullable: true
+          description: "Ação executada no destino (apenas para destination)"
+          example: "create_member"
+        actionDescription:
+          type: string
+          nullable: true
+          description: "Descrição legível da ação (apenas para destination)"
+          example: "Criar membro na área"
+        apiKey:
+          type: string
+          nullable: true
+          description: "API Key configurada (apenas para destination, não mostrada na UI)"
+          example: null
+      required:
+        - platform
+        - name
+        - color
+
+    IntegrationStatus:
+      type: object
+      properties:
+        value:
+          type: string
+          enum: [active, inactive]
+          example: "active"
+        label:
+          type: string
+          example: "Ativo"
+      required:
+        - value
+        - label
+
+    Action:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "Identificador técnico da ação"
+          example: "create_member"
+        description:
+          type: string
+          description: "Descrição legível da ação"
+          example: "Criar membro na área"
+      required:
+        - name
+        - description
+
+    Event:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "Identificador técnico do evento"
+          example: "purchase_completed"
+        description:
+          type: string
+          description: "Descrição legível do evento"
+          example: "Compra finalizada com sucesso"
+        destinations:
+          type: array
+          description: "Destinos disponíveis para este evento"
+          items:
+            $ref: '#/components/schemas/AvailableDestination'
+          minItems: 1
+      required:
+        - name
+        - description
+        - destinations
+
+    Integration:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "integration-001"
+        name:
+          type: string
+          nullable: true
+          description: "Nome personalizado da integração (opcional)"
+          example: "Membros do Rumo ao Milhão"
+        source:
+          allOf:
+            - $ref: '#/components/schemas/Platform'
+            - type: object
+              properties:
+                url:
+                  type: "null"
+                  description: "Source platforms não possuem URL"
+        destination:
+          $ref: '#/components/schemas/Platform'
+        webhookUrl:
+          type: string
+          format: uri
+          example: "https://api.conectaplus.com/webhook/hotmart-astronmembers-001"
+        status:
+          $ref: '#/components/schemas/IntegrationStatus'
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-21T14:30:00Z"
+        lastTriggered:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-01-21T14:30:00Z"
+        successCount:
+          type: integer
+          minimum: 0
+          example: 1247
+        errorCount:
+          type: integer
+          minimum: 0
+          example: 3
+      required:
+        - id
+        - source
+        - destination
+        - webhookUrl
+        - status
+        - createdAt
+        - updatedAt
+        - successCount
+        - errorCount
+
+    AvailableDestination:
+      type: object
+      properties:
+        platform:
+          type: string
+          description: "Identificador da plataforma (vem do backend, sem enum fixo)"
+          example: "astronmembers"
+        name:
+          type: string
+          example: "AstronMembers"
+        color:
+          type: string
+          example: "bg-purple-600 dark:bg-purple-500"
+        additionalFields:
+          type: array
+          items:
+            type: string
+          description: "Array de campos adicionais necessários para configurar o destino"
+          example: ["Url", "ApiKey"]
+        description:
+          type: string
+          nullable: true
+          description: "Descrição do que faz"
+          example: "Área de membros"
+        actions:
+          type: array
+          description: "Ações disponíveis para este destino"
+          items:
+            $ref: '#/components/schemas/Action'
+          minItems: 1
+      required:
+        - platform
+        - name
+        - color
+        - additionalFields
+        - actions
+
+    AvailableIntegration:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "ID único da integração disponível"
+          example: "hotmart"
+        platform:
+          type: string
+          description: "Identificador da plataforma (vem do backend, sem enum fixo)"
+          example: "hotmart"
+        name:
+          type: string
+          example: "Hotmart"
+        color:
+          type: string
+          example: "bg-orange-600 dark:bg-orange-500"
+        description:
+          type: string
+          nullable: true
+          example: "Plataforma de produtos digitais"
+        events:
+          type: array
+          description: "Eventos disponíveis para esta plataforma"
+          items:
+            $ref: '#/components/schemas/Event'
+          minItems: 1
+      required:
+        - id
+        - platform
+        - name
+        - color
+        - events
+
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "webhook-001"
+        integrationId:
+          type: string
+          example: "integration-001"
+        integration:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "integration-001"
+            name:
+              type: string
+              nullable: true
+              description: "Nome personalizado da integração"
+              example: "Membros do Rumo ao Milhão"
+            source:
+              allOf:
+                - $ref: '#/components/schemas/Platform'
+                - type: object
+                  properties:
+                    url:
+                      type: "null"
+            destination:
+              $ref: '#/components/schemas/Platform'
+          required:
+            - id
+            - source
+            - destination
+        status:
+          type: string
+          enum: [success, error]
+          example: "success"
+        endpoint:
+          type: string
+          format: uri
+          example: "https://discord.com/api/webhooks/123456"
+        method:
+          type: string
+          enum: [POST, GET, PUT, DELETE]
+          example: "POST"
+        requestBody:
+          type: string
+          description: "JSON string do body enviado"
+          example: '{"event": "purchase", "user": {"name": "João Silva"}}'
+        responseBody:
+          type: string
+          nullable: true
+          description: "JSON string do body recebido"
+          example: '{"success": true, "messageId": "msg_123"}'
+        responseStatus:
+          type: integer
+          nullable: true
+          example: 200
+        responseTime:
+          type: integer
+          nullable: true
+          description: "Tempo de resposta em milissegundos"
+          example: 145
+        error:
+          type: object
+          nullable: true
+          properties:
+            message:
+              type: string
+              example: "Canal não encontrado"
+            code:
+              type: string
+              nullable: true
+              example: "CHANNEL_NOT_FOUND"
+            details:
+              type: string
+              nullable: true
+              example: "O canal especificado não existe ou foi removido"
+          required:
+            - message
+        triggeredAt:
+          type: string
+          format: date-time
+          example: "2024-01-21T14:30:00Z"
+      required:
+        - id
+        - integrationId
+        - integration
+        - status
+        - endpoint
+        - method
+        - requestBody
+        - triggeredAt
+
+    WebhookFilters:
+      type: object
+      properties:
+        integrationId:
+          type: string
+          nullable: true
+          example: "integration-001"
+        status:
+          type: string
+          enum: [success, error]
+          nullable: true
+          example: "success"
+        startDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2024-01-01"
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2024-01-31"
+
+    WebhookPagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 20
+        total:
+          type: integer
+          minimum: 0
+          example: 150
+        totalPages:
+          type: integer
+          minimum: 0
+          example: 8
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+
+    BillingHistoryData:
+      type: object
+      properties:
+        invoices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invoice'
+        upcomingInvoice:
+          $ref: '#/components/schemas/UpcomingInvoice'
+          nullable: true
+        stats:
+          $ref: '#/components/schemas/BillingStats'
+        pagination:
+          $ref: '#/components/schemas/BillingPagination'
+      required:
+        - invoices
+        - stats
+        - pagination
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "inv_2024_01"
+        invoiceNumber:
+          type: string
+          example: "INV-2024-0001"
+        date:
+          type: string
+          format: date
+          example: "2024-01-21"
+        dueDate:
+          type: string
+          format: date
+          example: "2024-01-21"
+        amount:
+          type: string
+          example: "R$ 89,90"
+        amountValue:
+          type: number
+          format: float
+          example: 89.90
+        currency:
+          type: string
+          example: "BRL"
+        status:
+          type: string
+          enum: [paid, pending, failed, cancelled]
+          example: "paid"
+        planName:
+          type: string
+          example: "Ouro"
+        period:
+          type: object
+          properties:
+            start:
+              type: string
+              format: date
+              example: "2024-01-21"
+            end:
+              type: string
+              format: date
+              example: "2024-02-21"
+          required:
+            - start
+            - end
+        paymentMethod:
+          type: object
+          nullable: true
+          properties:
+            type:
+              type: string
+              enum: [card, pix, boleto]
+              example: "card"
+            last4:
+              type: string
+              nullable: true
+              example: "1234"
+            brand:
+              type: string
+              nullable: true
+              example: "Visa"
+          required:
+            - type
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-01-21T10:30:00Z"
+        invoiceUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://api.triggy.app/invoices/inv_2024_01.pdf"
+        downloadUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://api.triggy.app/invoices/inv_2024_01.pdf"
+      required:
+        - id
+        - invoiceNumber
+        - date
+        - dueDate
+        - amount
+        - amountValue
+        - currency
+        - status
+        - planName
+        - period
+
+    UpcomingInvoice:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "inv_upcoming_2024_02"
+        date:
+          type: string
+          format: date
+          example: "2024-02-21"
+        amount:
+          type: string
+          example: "R$ 89,90"
+        amountValue:
+          type: number
+          format: float
+          example: 89.90
+        currency:
+          type: string
+          example: "BRL"
+        planName:
+          type: string
+          example: "Ouro"
+        period:
+          type: object
+          properties:
+            start:
+              type: string
+              format: date
+              example: "2024-02-21"
+            end:
+              type: string
+              format: date
+              example: "2024-03-21"
+          required:
+            - start
+            - end
+        status:
+          type: string
+          enum: [upcoming, processing]
+          example: "upcoming"
+        autoRenewal:
+          type: boolean
+          example: true
+      required:
+        - id
+        - date
+        - amount
+        - amountValue
+        - currency
+        - planName
+        - period
+        - status
+        - autoRenewal
+
+    BillingStats:
+      type: object
+      properties:
+        totalInvoices:
+          type: integer
+          example: 5
+        totalPaid:
+          type: string
+          example: "R$ 359,60"
+        totalPaidValue:
+          type: number
+          format: float
+          example: 359.60
+        averageMonthly:
+          type: string
+          example: "R$ 71,92"
+        averageMonthlyValue:
+          type: number
+          format: float
+          example: 71.92
+      required:
+        - totalInvoices
+        - totalPaid
+        - totalPaidValue
+        - averageMonthly
+        - averageMonthlyValue
+
+    BillingPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 5
+        limit:
+          type: integer
+          example: 10
+        offset:
+          type: integer
+          example: 0
+        hasMore:
+          type: boolean
+          example: false
+      required:
+        - total
+        - limit
+        - offset
+        - hasMore
+
+    UpgradeOptionsData:
+      type: object
+      properties:
+        hasUpgradeOptions:
+          type: boolean
+          example: true
+        isTopTier:
+          type: boolean
+          example: false
+        currentPlan:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "prata"
+            name:
+              type: string
+              example: "Prata"
+            price:
+              type: string
+              example: "R$ 49,90"
+          required:
+            - id
+            - name
+            - price
+        upgradeOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpgradeOption'
+        featureComparison:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/FeatureComparison'
+      required:
+        - hasUpgradeOptions
+        - isTopTier
+        - currentPlan
+        - upgradeOptions
+
+    UpgradeOption:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "ouro"
+        planName:
+          type: string
+          example: "Ouro"
+        currentPrice:
+          type: string
+          example: "R$ 49,90"
+        upgradePrice:
+          type: string
+          example: "R$ 89,90"
+        savings:
+          type: string
+          example: "R$ 40,00 a mais por mês"
+        monthlySavings:
+          type: number
+          format: float
+          example: 40.00
+        features:
+          type: array
+          items:
+            type: string
+          example:
+            - "Até 10 integrações (vs 3 atual)"
+            - "5.000 webhooks/mês (vs 1.000 atual)"
+            - "Suporte via ticket"
+        newFeatures:
+          type: array
+          items:
+            type: string
+          example:
+            - "Transformações customizadas"
+            - "Retry automático"
+            - "Suporte via ticket"
+        recommended:
+          type: boolean
+          example: true
+        billingCycle:
+          type: string
+          enum: [monthly, yearly]
+          example: "monthly"
+      required:
+        - id
+        - planName
+        - currentPrice
+        - upgradePrice
+        - savings
+        - monthlySavings
+        - features
+        - newFeatures
+        - recommended
+        - billingCycle
+
+    FeatureComparison:
+      type: object
+      properties:
+        feature:
+          type: string
+          example: "Integrações"
+        currentPlan:
+          type: boolean
+          example: true
+        targetPlan:
+          type: boolean
+          example: true
+        highlighted:
+          type: boolean
+          example: true
+      required:
+        - feature
+        - currentPlan
+        - targetPlan
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ========== ENDPOINTS DOS PLANOS ==========
+  /plans:
+    get:
+      tags:
+        - Plans
+      summary: Buscar todos os planos disponíveis
+      description: Retorna lista de planos de assinatura com suas características e preços
+      parameters:
+        - name: includeFeatures
+          in: query
+          description: Incluir lista detalhada de features
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        200:
+          description: Lista de planos retornada com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          plans:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  example: "prata"
+                                name:
+                                  type: string
+                                  example: "Prata"
+                                price:
+                                  type: string
+                                  example: "R$ 49,90"
+                                priceValue:
+                                  type: number
+                                  format: float
+                                  example: 49.90
+                                icon:
+                                  type: string
+                                  example: "Award"
+                                description:
+                                  type: string
+                                  example: "Ideal para pequenas empresas e startups"
+                                features:
+                                  type: array
+                                  items:
+                                    type: string
+                                  example:
+                                    - "Até 3 integrações"
+                                    - "1.000 webhooks por mês"
+                                popular:
+                                  type: boolean
+                                  example: false
+        500:
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========== ENDPOINTS DO DASHBOARD ==========
+  /dashboard:
+    get:
+      tags:
+        - Dashboard
+      summary: Dados completos do dashboard
+      description: Retorna todos os dados necessários para o dashboard do usuário (estatísticas, gráficos, atividades recentes e assinatura)
+      responses:
+        200:
+          description: Dados do dashboard retornados com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          stats:
+                            type: object
+                            properties:
+                              webhooksUsed:
+                                type: integer
+                                example: 1247
+                              webhooksLimit:
+                                type: integer
+                                example: 5000
+                              integrations:
+                                type: integer
+                                example: 3
+                              successRate:
+                                type: number
+                                format: float
+                                example: 98.5
+                          chartData:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                date:
+                                  type: string
+                                  format: date
+                                  example: "2024-01-21"
+                                webhooks:
+                                  type: integer
+                                  example: 189
+                          recentActivities:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  example: "webhook-001"
+                                integration:
+                                  type: string
+                                  example: "Hotmart → AstronMembers"
+                                endpoint:
+                                  type: string
+                                  format: uri
+                                  example: "https://app.astronmembers.com/webhook/hotmart"
+                                status:
+                                  type: string
+                                  enum: [success, error, pending]
+                                  example: "success"
+                                timestamp:
+                                  type: string
+                                  format: date-time
+                                  example: "2024-01-21T14:30:00Z"
+                                responseTime:
+                                  type: integer
+                                  description: "Tempo de resposta em milissegundos"
+                                  example: 245
+                          subscription:
+                            type: object
+                            properties:
+                              planName:
+                                type: string
+                                example: "Ouro"
+                              planPrice:
+                                type: string
+                                example: "R$ 89,90"
+                              nextBillingDate:
+                                type: string
+                                format: date
+                                example: "2024-02-21"
+                              status:
+                                type: string
+                                enum: [active, inactive, pending, cancelled]
+                                example: "active"
+        500:
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========== ENDPOINTS ESPECÍFICOS DO DASHBOARD ==========
+  /dashboard/stats:
+    get:
+      tags:
+        - Dashboard
+      summary: Estatísticas do dashboard
+      description: Retorna estatísticas de uso do usuário (webhooks, integrações, taxa de sucesso)
+      parameters:
+        - name: period
+          in: query
+          description: Período para análise
+          required: false
+          schema:
+            type: string
+            enum: [today, week, month, year]
+            default: month
+        - name: includeComparison
+          in: query
+          description: Incluir comparação com período anterior
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        200:
+          description: Estatísticas retornadas com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          webhooksUsed:
+                            type: integer
+                            example: 1247
+                          webhooksLimit:
+                            type: integer
+                            example: 5000
+                          integrations:
+                            type: integer
+                            example: 3
+                          successRate:
+                            type: number
+                            format: float
+                            example: 98.5
+                          comparison:
+                            type: object
+                            nullable: true
+                            properties:
+                              previousPeriod:
+                                type: object
+                                properties:
+                                  webhooksUsed:
+                                    type: integer
+                                  successRate:
+                                    type: number
+                                    format: float
+                              percentageChange:
+                                type: object
+                                properties:
+                                  webhooks:
+                                    type: number
+                                    format: float
+                                  successRate:
+                                    type: number
+                                    format: float
+
+  /dashboard/chart-data:
+    get:
+      tags:
+        - Dashboard
+      summary: Dados para gráficos do dashboard
+      description: Retorna dados temporais para exibição em gráficos
+      parameters:
+        - name: period
+          in: query
+          description: Período dos dados
+          required: false
+          schema:
+            type: string
+            enum: [day, week, month, year]
+            default: week
+        - name: granularity
+          in: query
+          description: Granularidade dos dados
+          required: false
+          schema:
+            type: string
+            enum: [hour, day, week, month]
+            default: day
+      responses:
+        200:
+          description: Dados do gráfico retornados com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                date:
+                                  type: string
+                                  format: date
+                                  example: "2024-01-15"
+                                webhooks:
+                                  type: integer
+                                  example: 178
+                                successCount:
+                                  type: integer
+                                  example: 175
+                                errorCount:
+                                  type: integer
+                                  example: 3
+                                pendingCount:
+                                  type: integer
+                                  example: 0
+                          summary:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+                                example: 1401
+                              average:
+                                type: number
+                                format: float
+                                example: 200.1
+                              peak:
+                                type: object
+                                properties:
+                                  value:
+                                    type: integer
+                                    example: 298
+                                  date:
+                                    type: string
+                                    format: date
+                                    example: "2024-01-18"
+                              trend:
+                                type: string
+                                enum: [up, down, stable]
+                                example: "up"
+
+  /dashboard/recent-activities:
+    get:
+      tags:
+        - Dashboard
+      summary: Atividades recentes de webhooks
+      description: Retorna lista das atividades recentes de webhooks do usuário
+      parameters:
+        - name: limit
+          in: query
+          description: Número máximo de atividades
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: status
+          in: query
+          description: Filtrar por status
+          required: false
+          schema:
+            type: string
+            enum: [success, error, pending]
+      responses:
+        200:
+          description: Atividades retornadas com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "webhook-001"
+                            integration:
+                              type: string
+                              example: "Hotmart → ZapFacil"
+                            endpoint:
+                              type: string
+                              format: uri
+                              example: "https://webhook.zapfacil.com/hotmart/events"
+                            status:
+                              type: string
+                              enum: [success, error, pending]
+                              example: "success"
+                            timestamp:
+                              type: string
+                              format: date-time
+                              example: "2024-01-21T14:30:00Z"
+                            responseTime:
+                              type: integer
+                              description: Tempo de resposta em milissegundos
+                              example: 145
+                            payload:
+                              type: object
+                              properties:
+                                size:
+                                  type: integer
+                                  description: Tamanho do payload em bytes
+                                contentType:
+                                  type: string
+                                  example: "application/json"
+                            response:
+                              type: object
+                              properties:
+                                statusCode:
+                                  type: integer
+                                  example: 200
+                                headers:
+                                  type: object
+                            retryCount:
+                              type: integer
+                              minimum: 0
+                              example: 0
+
+  /dashboard/subscription-info:
+    get:
+      tags:
+        - Dashboard
+      summary: Informações da assinatura
+      description: Retorna informações detalhadas da assinatura atual do usuário
+      parameters:
+        - name: includeBillingHistory
+          in: query
+          description: Incluir histórico de cobrança
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        200:
+          description: Informações da assinatura retornadas com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          planName:
+                            type: string
+                            example: "Ouro"
+                          planPrice:
+                            type: string
+                            example: "R$ 89,90"
+                          nextBillingDate:
+                            type: string
+                            format: date
+                            example: "2024-02-21"
+                          status:
+                            type: string
+                            enum: [active, trial, expired, cancelled]
+                            example: "active"
+                          billing:
+                            type: object
+                            nullable: true
+                            properties:
+                              nextBillingDate:
+                                type: string
+                                format: date
+                              amount:
+                                type: string
+                              currency:
+                                type: string
+                                example: "BRL"
+                              paymentMethod:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                    example: "card"
+                                  last4:
+                                    type: string
+                                    example: "1234"
+                                  brand:
+                                    type: string
+                                    example: "Visa"
+                              billingHistory:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    date:
+                                      type: string
+                                      format: date
+                                    amount:
+                                      type: string
+                                    status:
+                                      type: string
+                                      enum: [paid, pending, failed]
+                                    invoiceUrl:
+                                      type: string
+                                      format: uri
+
+  # ========== ENDPOINTS DE CHECKOUT ==========
+  /checkout/apply-coupon:
+    post:
+      tags:
+        - Checkout
+      summary: Aplicar cupom de desconto
+      description: Valida e aplica um cupom de desconto para um plano específico
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                couponCode:
+                  type: string
+                  example: "PRIMEIRA10"
+                  description: Código do cupom a ser aplicado
+                planId:
+                  type: string
+                  example: "ouro"
+                  description: ID do plano selecionado
+                planPrice:
+                  type: number
+                  format: float
+                  example: 89.90
+                  description: Preço original do plano
+              required:
+                - couponCode
+                - planId
+                - planPrice
+      responses:
+        200:
+          description: Cupom processado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          valid:
+                            type: boolean
+                            example: true
+                          coupon:
+                            type: object
+                            nullable: true
+                            properties:
+                              code:
+                                type: string
+                                example: "PRIMEIRA10"
+                              discount:
+                                type: number
+                                example: 10
+                              type:
+                                type: string
+                                enum: [percentage, fixed]
+                                example: "percentage"
+                              description:
+                                type: string
+                                example: "10% de desconto no primeiro mês"
+                          discountAmount:
+                            type: number
+                            format: float
+                            example: 8.99
+                          finalPrice:
+                            type: number
+                            format: float
+                            example: 80.91
+                          error:
+                            type: string
+                            nullable: true
+                            example: null
+        400:
+          description: Cupom inválido ou dados incorretos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          valid:
+                            type: boolean
+                            example: false
+                          discountAmount:
+                            type: number
+                            example: 0
+                          finalPrice:
+                            type: number
+                            format: float
+                            example: 89.90
+                          error:
+                            type: string
+                            example: "Cupom inválido ou expirado"
+
+  /checkout/process-payment:
+    post:
+      tags:
+        - Checkout
+      summary: Processar pagamento da assinatura
+      description: Processa o pagamento e cria a assinatura do usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                planId:
+                  type: string
+                  example: "ouro"
+                customerData:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: "João Silva"
+                    cpfCnpj:
+                      type: string
+                      example: "123.456.789-00"
+                    email:
+                      type: string
+                      format: email
+                      example: "joao@email.com"
+                  required:
+                    - name
+                    - cpfCnpj
+                    - email
+                paymentData:
+                  type: object
+                  properties:
+                    cardName:
+                      type: string
+                      example: "JOAO SILVA"
+                    cardNumber:
+                      type: string
+                      example: "4111111111111111"
+                    expiryMonth:
+                      type: string
+                      pattern: "^(0[1-9]|1[0-2])$"
+                      example: "12"
+                    expiryYear:
+                      type: string
+                      pattern: "^20[2-9][0-9]$"
+                      example: "2025"
+                    cvv:
+                      type: string
+                      pattern: "^[0-9]{3,4}$"
+                      example: "123"
+                  required:
+                    - cardName
+                    - cardNumber
+                    - expiryMonth
+                    - expiryYear
+                    - cvv
+                couponCode:
+                  type: string
+                  nullable: true
+                  example: "PRIMEIRA10"
+                finalAmount:
+                  type: number
+                  format: float
+                  example: 80.91
+              required:
+                - planId
+                - customerData
+                - paymentData
+                - finalAmount
+      responses:
+        200:
+          description: Pagamento processado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: true
+                          subscriptionId:
+                            type: string
+                            example: "sub_abc123def456"
+                          transactionId:
+                            type: string
+                            example: "txn_789xyz012"
+                          message:
+                            type: string
+                            example: "Pagamento processado com sucesso! Sua assinatura foi ativada."
+        400:
+          description: Dados de pagamento inválidos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: false
+                          message:
+                            type: string
+                            example: "Número do cartão inválido"
+                          error:
+                            type: string
+                            example: "INVALID_CARD_NUMBER"
+        402:
+          description: Pagamento recusado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: false
+                          message:
+                            type: string
+                            example: "Falha no processamento do pagamento. Verifique os dados do cartão."
+                          error:
+                            type: string
+                            example: "PAYMENT_DECLINED"
+
+  # ========== ENDPOINTS DAS INTEGRAÇÕES ==========
+  /integrations/user:
+    get:
+      tags:
+        - Integrations
+      summary: Buscar integrações do usuário
+      description: Retorna lista de integrações ativas do usuário com filtros opcionais
+      parameters:
+        - name: status
+          in: query
+          description: Filtrar por status da integração
+          required: false
+          schema:
+            type: string
+            enum: [active, inactive]
+        - name: source
+          in: query
+          description: Filtrar por plataforma de origem
+          required: false
+          schema:
+            type: string
+            enum: [hotmart, kiwify, lastlink]
+        - name: limit
+          in: query
+          description: Número máximo de resultados
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: offset
+          in: query
+          description: Número de registros para pular
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        200:
+          description: Lista de integrações retornada com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          integrations:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Integration'
+                          total:
+                            type: integer
+                            example: 3
+                          limit:
+                            type: integer
+                            example: 10
+                          offset:
+                            type: integer
+                            example: 0
+
+    post:
+      tags:
+        - Integrations
+      summary: Criar nova integração
+      description: Cria uma nova integração entre duas plataformas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome personalizado da integração (opcional)
+                  example: "Membros do Rumo ao Milhão"
+                source:
+                  type: object
+                  properties:
+                    platform:
+                      type: string
+                      description: "Plataforma de origem (vem do backend, sem enum fixo)"
+                      example: "hotmart"
+                    event:
+                      type: string
+                      description: Evento selecionado
+                      example: "purchase_completed"
+                  required:
+                    - platform
+                    - event
+                destination:
+                  type: object
+                  properties:
+                    platform:
+                      type: string
+                      description: "Plataforma de destino (vem do backend, sem enum fixo)"
+                      example: "astronmembers"
+                    action:
+                      type: string
+                      description: Ação selecionada
+                      example: "create_member"
+                    additionalFields:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: "Nome normalizado do campo"
+                            example: "url"
+                          value:
+                            type: string
+                            description: "Valor fornecido pelo usuário"
+                            example: "https://app.astronmembers.com/integrations/webhooks"
+                        required:
+                          - name
+                          - value
+                      description: "Campos adicionais configurados pelo usuário"
+                      example: [
+                        { "name": "url", "value": "https://app.astronmembers.com/integrations/webhooks" },
+                        { "name": "api_key", "value": "astron_api_key_123456" }
+                      ]
+                  required:
+                    - platform
+                    - action
+              required:
+                - source
+                - destination
+      responses:
+        201:
+          description: Integração criada com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Integration'
+
+  /integrations/available:
+    get:
+      tags:
+        - Integrations
+      summary: Buscar integrações disponíveis
+      description: Retorna lista de integrações disponíveis para configuração
+      parameters:
+        - name: source
+          in: query
+          description: Filtrar por plataforma de origem específica
+          required: false
+          schema:
+            type: string
+            enum: [hotmart, kiwify, lastlink]
+      responses:
+        200:
+          description: Lista de integrações disponíveis retornada com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          integrations:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/AvailableIntegration'
+
+  /integrations/{id}/user:
+    delete:
+      tags:
+        - Integrations
+      summary: Excluir integração do usuário
+      description: Remove uma integração do usuário permanentemente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID da integração
+          schema:
+            type: string
+            example: "integration-001"
+      responses:
+        200:
+          description: Integração excluída com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Integração excluída com sucesso"
+
+  # ========== ENDPOINTS DOS WEBHOOKS ==========
+  /webhooks:
+    get:
+      tags:
+        - Webhooks
+      summary: Buscar webhooks disparados
+      description: Retorna lista paginada de webhooks disparados pelas integrações do usuário
+      parameters:
+        - name: page
+          in: query
+          description: Página a ser retornada (padrão 1)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+        - name: limit
+          in: query
+          description: Número de itens por página (padrão 20, máximo 100)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 20
+        - name: integrationId
+          in: query
+          description: Filtrar por ID de integração específica
+          required: false
+          schema:
+            type: string
+            example: "integration-001"
+        - name: status
+          in: query
+          description: Filtrar por status do webhook
+          required: false
+          schema:
+            type: string
+            enum: [success, error]
+            example: "success"
+        - name: startDate
+          in: query
+          description: Data de início para filtro (formato YYYY-MM-DD)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+        - name: endDate
+          in: query
+          description: Data de fim para filtro (formato YYYY-MM-DD)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-31"
+      responses:
+        200:
+          description: Lista de webhooks retornada com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          webhooks:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Webhook'
+                          pagination:
+                            $ref: '#/components/schemas/WebhookPagination'
+                          filters:
+                            $ref: '#/components/schemas/WebhookFilters'
+                        required:
+                          - webhooks
+                          - pagination
+                          - filters
+        400:
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        401:
+          description: Token de autenticação inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /webhooks/{id}/retry:
+    post:
+      tags:
+        - Webhooks
+      summary: Reenviar webhook com falha
+      description: Reenvia um webhook que falhou anteriormente, criando uma nova tentativa
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do webhook a ser reenviado
+          schema:
+            type: string
+            example: "webhook-001"
+      responses:
+        200:
+          description: Webhook reenviado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: true
+                          message:
+                            type: string
+                            example: "Webhook reenviado com sucesso"
+                          newWebhookId:
+                            type: string
+                            example: "retry_webhook-001_1644561234567"
+                          retriedAt:
+                            type: string
+                            format: date-time
+                            example: "2024-01-21T15:30:45Z"
+        404:
+          description: Webhook não encontrado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - type: object
+                    properties:
+                      message:
+                        example: "Webhook não encontrado"
+        429:
+          description: Muitas tentativas de reenvio
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - type: object
+                    properties:
+                      message:
+                        example: "Muitas tentativas de reenvio. Tente novamente em alguns minutos."
+        500:
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========== ENDPOINTS DE ASSINATURA ==========
+  /subscription/billing-history:
+    get:
+      tags:
+        - Subscription
+      summary: Histórico de cobrança
+      description: Retorna o histórico de faturas e pagamentos do usuário
+      parameters:
+        - name: limit
+          in: query
+          description: Número máximo de faturas por página
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: offset
+          in: query
+          description: Número de registros para pular (paginação)
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: status
+          in: query
+          description: Filtrar por status da fatura
+          required: false
+          schema:
+            type: string
+            enum: [all, paid, pending, failed, cancelled]
+            default: all
+        - name: startDate
+          in: query
+          description: Data de início para filtro (formato YYYY-MM-DD)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2023-01-01"
+        - name: endDate
+          in: query
+          description: Data de fim para filtro (formato YYYY-MM-DD)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-31"
+      responses:
+        200:
+          description: Histórico de cobrança retornado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/BillingHistoryData'
+
+  /subscription/upgrade-options:
+    get:
+      tags:
+        - Subscription
+      summary: Opções de upgrade disponíveis
+      description: Retorna as opções de upgrade disponíveis para o plano atual do usuário
+      parameters:
+        - name: currentPlanId
+          in: query
+          description: ID do plano atual do usuário
+          required: true
+          schema:
+            type: string
+            enum: [prata, ouro, diamante]
+            example: "prata"
+        - name: includeFeatureComparison
+          in: query
+          description: Incluir comparação detalhada de features
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        200:
+          description: Opções de upgrade retornadas com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UpgradeOptionsData'
+
+tags:
+  - name: Plans
+    description: Operações relacionadas aos planos de assinatura
+  - name: Dashboard
+    description: Dados e estatísticas do dashboard do usuário
+  - name: Integrations
+    description: Operações relacionadas às integrações entre plataformas
+  - name: Webhooks
+    description: Operações relacionadas aos webhooks disparados pelas integrações
+  - name: Checkout
+    description: Operações de checkout e pagamento
+  - name: Subscription
+    description: Operações relacionadas à assinatura e cobrança do usuário
