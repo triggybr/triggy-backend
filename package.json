@@ -19,8 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "offline": "serverless offline",
-    "deploy:dev": "sls deploy --aws-profile notifyu-dev --stage dev",
-    "remove:dev": "sls remove --aws-profile notifyu-dev --stage dev"
+    "deploy:stg": "sls deploy --aws-profile triggy --stage stg",
+    "remove:stg": "sls remove --aws-profile triggy --stage stg"
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.873.0",

@@ -23,7 +23,7 @@ export class SqsConsumer implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly config: ConfigService,
     private readonly webhooksService: WebhooksService,
-  ) {}
+  ) { }
 
   onModuleInit() {
     const queueUrl = this.config.get<string>('QUEUE_URL');
@@ -34,7 +34,13 @@ export class SqsConsumer implements OnModuleInit, OnModuleDestroy {
     this.queueUrl = queueUrl;
 
     const region = this.config.get<string>('AWS_REGION')
-    this.client = new SQSClient({ region });
+    this.client = new SQSClient({
+      region,
+      credentials: {
+        accessKeyId: this.config.get<string>('AWS_ACCESS_KEY_ID') as string,
+        secretAccessKey: this.config.get<string>('AWS_SECRET_ACCESS_KEY') as string,
+      }
+    });
 
     this.running = true;
     this.logger.log(`Starting SQS consumer for ${this.queueUrl}`);

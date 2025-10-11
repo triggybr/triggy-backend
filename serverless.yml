@@ -1,4 +1,4 @@
-service: integration-api
+service: triggy
 
 frameworkVersion: '4'
 
