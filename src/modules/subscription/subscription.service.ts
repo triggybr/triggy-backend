@@ -6,7 +6,6 @@ import { Plan, PlanDocument } from '../plans/schemas/plan.schema';
 import { Signature, SignatureDocument } from '../user/schemas/signature.schema';
 import { BillingHistoryQueryDto } from './dto/billing-history-query.dto';
 import { BillingHistoryResponseDto, UpgradeOptionsResponseDto } from './dto/subscription-responses.dto';
-import { formatBRL } from 'src/common/utils/format-brl';
 import { UpgradeOptionsQueryDto } from './dto/upgrade-options-query.dto';
 
 @Injectable()
@@ -106,8 +105,7 @@ export class SubscriptionService {
                 invoiceNumber: `INV-${order.id.substring(0, 8).toUpperCase()}`,
                 date: createdDate.toISOString().split('T')[0],
                 dueDate: dueDate.toISOString().split('T')[0],
-                amount: formatBRL(finalAmount),
-                amountValue: finalAmount / 100,
+                amount: finalAmount,
                 currency: 'BRL',
                 status: statusMap[order.status] || 'pending',
                 planName: plan?.name || signature?.type || 'Unknown',
@@ -137,8 +135,7 @@ export class SubscriptionService {
             upcomingInvoice = {
                 id: `upcoming_${signature.id}`,
                 date: nextBillingDate.toISOString().split('T')[0],
-                amount: formatBRL(currentPlan.priceValue),
-                amountValue: currentPlan.priceValue / 100,
+                amount: currentPlan.priceValue,
                 currency: 'BRL',
                 planName: currentPlan.name,
                 period: {
@@ -159,10 +156,8 @@ export class SubscriptionService {
 
         const stats = {
             totalInvoices: paidOrders.length,
-            totalPaid: formatBRL(totalPaidValue),
-            totalPaidValue: totalPaidValue / 100,
-            averageMonthly: formatBRL(averageMonthlyValue),
-            averageMonthlyValue: averageMonthlyValue / 100,
+            totalPaid: totalPaidValue,
+            averageMonthly: Math.round(averageMonthlyValue),
         };
 
         const pagination = {
@@ -235,10 +230,9 @@ export class SubscriptionService {
                 return {
                     id: plan.id,
                     planName: plan.name,
-                    currentPrice: formatBRL(currentPlanPrice),
-                    upgradePrice: formatBRL(plan.priceValue),
-                    savings: `${formatBRL(priceDifference)} a mais por mês`,
-                    monthlySavings: priceDifference / 100,
+                    currentPrice: currentPlanPrice,
+                    upgradePrice: plan.priceValue,
+                    priceDifference: priceDifference,
                     features,
                     newFeatures,
                     recommended: isRecommended,
@@ -272,11 +266,11 @@ export class SubscriptionService {
             currentPlan: currentPlan ? {
                 id: currentPlan.id,
                 name: currentPlan.name,
-                price: formatBRL(currentPlan.priceValue),
+                price: currentPlan.priceValue,
             } : {
                 id: 'none',
                 name: 'Nenhum plano',
-                price: 'R$ 0,00',
+                price: 0,
             },
             upgradeOptions,
             featureComparison,
