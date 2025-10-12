@@ -22,10 +22,10 @@ export class ListWebhooksDto {
   @IsString()
   integrationId?: string;
 
-  @ApiProperty({ description: 'Filtrar webhooks por status.', enum: ['SUCCESS', 'ERROR'], required: false })
+  @ApiProperty({ description: 'Filtrar webhooks por status.', enum: ['success', 'error'], required: false })
   @IsOptional()
-  @IsEnum(['SUCCESS', 'ERROR'])
-  status?: 'SUCCESS' | 'ERROR';
+  @IsEnum(['success', 'error'])
+  status?: 'success' | 'error';
 
   @ApiProperty({ description: 'Data inicial para filtrar webhooks (formato ISO 8601).', required: false })
   @IsOptional()

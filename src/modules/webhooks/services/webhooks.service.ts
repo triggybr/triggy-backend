@@ -34,7 +34,7 @@ export class WebhooksService {
       filters['userIntegrationId'] = integrationId;
     }
     if (status) {
-      filters['status'] = status;
+      filters['status'] = status.toUpperCase();
     }
     if (startDate || endDate) {
       filters['triggeredAt'] = {};
