@@ -7,7 +7,7 @@ import { Integration, IntegrationDocument } from '../../modules/integrations/sch
 export class IntegrationSeeder implements OnModuleInit {
   constructor(
     @InjectModel(Integration.name) private readonly integrationModel: Model<IntegrationDocument>,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     await this.seed();
@@ -15,7 +15,7 @@ export class IntegrationSeeder implements OnModuleInit {
 
   async seed() {
     const count = await this.integrationModel.countDocuments();
-    
+
     if (count === 0) {
       console.log('Seeding integrations...');
       const integrations: Partial<Integration>[] = [
@@ -23,7 +23,7 @@ export class IntegrationSeeder implements OnModuleInit {
           id: 'hotmart',
           platform: 'hotmart',
           name: 'Hotmart',
-          color: '#f04e23',
+          color: 'orange-600',
           description: 'Integração com a plataforma Hotmart para recebimento de webhooks',
           events: [
             {
@@ -33,7 +33,7 @@ export class IntegrationSeeder implements OnModuleInit {
                 {
                   platform: 'astromembers',
                   name: 'AstroMembers',
-                  color: '#6f42c1',
+                  color: 'purple-600',
                   additionalFields: ['url', 'api_key'],
                   description: 'Criar membro na plataforma AstroMembers',
                   actions: [
@@ -50,7 +50,7 @@ export class IntegrationSeeder implements OnModuleInit {
                 {
                   platform: 'discord',
                   name: 'Discord',
-                  color: '#5865F2',
+                  color: 'indigo-500',
                   additionalFields: ['url', 'api_key'],
                   description: 'Envia notificação para o Discord',
                   actions: [
@@ -73,7 +73,7 @@ export class IntegrationSeeder implements OnModuleInit {
                 {
                   platform: 'astromembers',
                   name: 'AstroMembers',
-                  color: '#6f42c1',
+                  color: 'purple-600',
                   additionalFields: ['url', 'api_key'],
                   actions: [
                     {

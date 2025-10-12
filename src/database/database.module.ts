@@ -5,10 +5,12 @@ import { Webhook, WebhookSchema } from '../modules/webhooks/schemas/webhook.sche
 import { User, UserSchema } from '../modules/user/schemas/user.schema';
 import { Plan, PlanSchema } from '../modules/plans/schemas/plan.schema';
 import { Integration, IntegrationSchema } from '../modules/integrations/schemas/integration.schema';
+import { UserIntegration, UserIntegrationSchema } from '../modules/integrations/schemas/user-integration.schema';
 import { WebhookSeeder } from './seeders/webhook.seeder';
 import { UserSeeder } from './seeders/user.seeder';
 import { PlanSeeder } from './seeders/plan.seeder';
 import { IntegrationSeeder } from './seeders/integration.seeder';
+import { UserIntegrationSeeder } from './seeders/user-integration.seeder';
 
 @Module({
   imports: [
@@ -24,13 +26,15 @@ import { IntegrationSeeder } from './seeders/integration.seeder';
       { name: User.name, schema: UserSchema },
       { name: Plan.name, schema: PlanSchema },
       { name: Integration.name, schema: IntegrationSchema },
+      { name: UserIntegration.name, schema: UserIntegrationSchema },
     ]),
   ],
   providers: [
-    WebhookSeeder, 
-    UserSeeder, 
-    PlanSeeder, 
+    WebhookSeeder,
+    UserSeeder,
+    PlanSeeder,
     IntegrationSeeder,
+    UserIntegrationSeeder,
   ]
 })
-export class DatabaseModule {}
+export class DatabaseModule { }
