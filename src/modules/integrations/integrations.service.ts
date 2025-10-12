@@ -83,7 +83,7 @@ export class IntegrationsService {
     const filter = {
       userId: user.id,
     };
-    if (query.status) { filter['status.value'] = query.status; }
+    if (query.status) { filter['status.value'] = query.status.toUpperCase(); }
     if (query.source) { filter['source.platform'] = query.source; }
 
     const [items, total] = await Promise.all([
@@ -191,11 +191,11 @@ export class IntegrationsService {
     }
 
     const query: any = { userId: user.id };
-    
+
     if (filters.status) {
       query['status.value'] = filters.status;
     }
-    
+
     if (filters.source) {
       query['source.platform'] = filters.source;
     }
@@ -223,7 +223,10 @@ export class IntegrationsService {
       source: integration.source,
       destination: integration.destination,
       webhookUrl: `${process.env.API_URL}/v1/webhooks/${integration.urlCode}`,
-      status: integration.status,
+      status: {
+        value: integration.status.value.toLowerCase(),
+        label: integration.status.label
+      },
       createdAt: integration.createdAt,
       updatedAt: integration.updatedAt,
       lastTriggered: integration.lastTriggered ?? null,

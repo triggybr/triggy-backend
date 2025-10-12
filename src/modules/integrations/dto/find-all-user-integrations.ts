@@ -3,10 +3,10 @@ import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class FindAllUserIntegrationsQueryDto {
-  @ApiProperty({ description: 'Filter integrations by status.', enum: ['ACTIVE', 'INACTIVE'], required: false })
+  @ApiProperty({ description: 'Filter integrations by status.', enum: ['active', 'inactive'], required: false })
   @IsOptional()
-  @IsEnum(['ACTIVE', 'INACTIVE'])
-  status?: 'ACTIVE' | 'INACTIVE';
+  @IsEnum(['active', 'inactive'])
+  status?: 'active' | 'inactive';
 
   @ApiProperty({ description: 'Filter integrations by source platform.', example: 'hotmart', required: false })
   @IsOptional()
