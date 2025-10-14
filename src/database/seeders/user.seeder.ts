@@ -7,15 +7,21 @@ import { User, UserDocument } from '../../modules/user/schemas/user.schema';
 export class UserSeeder implements OnModuleInit {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     await this.seed();
   }
 
   async seed() {
-    const count = await this.userModel.countDocuments();
+    const environment = process.env.ENVIRONMENT || 'staging';
+    if (environment == 'production') {
+      console.log('Skipping integration seeding in non-development environment');
+      return;
+    }
     
+    const count = await this.userModel.countDocuments();
+
     if (count === 0) {
       console.log('Seeding users...');
       const users: Partial<User>[] = [

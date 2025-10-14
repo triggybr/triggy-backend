@@ -7,15 +7,21 @@ import { Webhook, WebhookDocument } from '../../modules/webhooks/schemas/webhook
 export class WebhookSeeder implements OnModuleInit {
   constructor(
     @InjectModel(Webhook.name) private readonly webhookModel: Model<WebhookDocument>,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     await this.seed();
   }
 
   async seed() {
+    const environment = process.env.ENVIRONMENT || 'staging';
+    if (environment == 'production') {
+      console.log('Skipping integration seeding in non-development environment');
+      return;
+    }
+
     const count = await this.webhookModel.countDocuments();
-    
+
     if (count === 0) {
       console.log('Seeding webhooks...');
       const webhooks: Partial<Webhook>[] = [
