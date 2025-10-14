@@ -16,17 +16,20 @@ class CustomerDataDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ description: 'CEP do cliente.', example: '12345-678' })
+  @ApiProperty({ description: 'CEP do cliente.', example: '12345-678', required: false })
+  @IsOptional()
   @IsString()
-  postalCode: string;
+  postalCode: string = '30160040';
 
-  @ApiProperty({ description: 'Número do endereço do cliente.', example: '123' })
+  @ApiProperty({ description: 'Número do endereço do cliente.', example: '123', required: false })
+  @IsOptional()
   @IsString()
-  addressNumber: string;
+  addressNumber: string = '243';
 
-  @ApiProperty({ description: 'Número de telefone do cliente.', example: '11987654321' })
+  @ApiProperty({ description: 'Número de telefone do cliente.', example: '11987654321', required: false })
+  @IsOptional()
   @IsString()
-  phone: string;
+  phone: string = '08000090037';
 } 
 
 class PaymentDataDto {
