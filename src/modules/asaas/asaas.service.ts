@@ -15,7 +15,7 @@ export class AsaasService {
   constructor(
     private readonly http: HttpService,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>
-  ) {}
+  ) { }
 
   private get authHeaders() {
     if (!this.ASAAS_API_KEY) throw new InternalServerErrorException('ASAAS_API_KEY ausente');
@@ -29,54 +29,65 @@ export class AsaasService {
     return data;
   }
 
-  async createSubscriptionWithCreditCard(input: AsaasCreateSubscriptionWithCreditCardInput) {
-    const user = await this.userModel.findOne({ email: input.creditCardHolderInfo.email }).lean();
-    
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+  async createSubscriptionWithCreditCard(userExternalId: string, input: AsaasCreateSubscriptionWithCreditCardInput) {
+    try {
 
-    let customerId = user.gatewayId;
+      const user = await this.userModel.findOne({ externalId: userExternalId }).lean();
 
-    if (!customerId) {
-      const customerData: AsaasCreateCustomerInput = {
-        name: input.creditCardHolderInfo.name,
-        cpfCnpj: input.creditCardHolderInfo.cpfCnpj,
-      };
-
-      const customer = await this.createCustomer(customerData);
-      customerId = customer.id;
-
-      if (!customerId) {
-        throw new InternalServerErrorException('Failed to create customer in gateway');
+      if (!user) {
+        throw new NotFoundException('User not found');
       }
 
-      await this.userModel.updateOne(
-        { id: user.id},
-        { gatewayId: customerId }
+      let customerId = user.gatewayId;
+
+      if (!customerId) {
+        const customerData: AsaasCreateCustomerInput = {
+          name: input.creditCardHolderInfo.name,
+          cpfCnpj: input.creditCardHolderInfo.cpfCnpj,
+        };
+
+        const customer = await this.createCustomer(customerData);
+        customerId = customer.id;
+
+        if (!customerId) {
+          throw new InternalServerErrorException('Failed to create customer in gateway');
+        }
+
+        await this.userModel.updateOne(
+          { id: user.id },
+          { gatewayId: customerId }
+        );
+      }
+
+      const nextDueDate = new Date().toISOString().split('T')[0];
+
+      const finalValue = parseFloat((input.value / 100).toFixed(2))
+
+      const subscriptionInput = {
+        customer: customerId,
+        externalReference: input.externalReference,
+        billingType: 'CREDIT_CARD',
+        value: finalValue,
+        nextDueDate,
+        cycle: 'MONTHLY',
+        creditCard: input.creditCard,
+        creditCardHolderInfo: input.creditCardHolderInfo,
+        remoteIp: input.remoteIp
+      };
+
+      const { data } = await firstValueFrom(
+        this.http.post('/subscriptions', subscriptionInput, { headers: this.authHeaders }),
       );
+
+      return data;
+
+
+    } catch (error) {
+      throw error
     }
 
-    const nextDueDate = new Date().toISOString().split('T')[0];
-    
-    const finalValue = parseFloat((input.value / 100).toFixed(2))
 
-    const subscriptionInput = {
-      customer: customerId,
-      externalReference: input.externalReference,
-      billingType: 'CREDIT_CARD',
-      value: finalValue,
-      nextDueDate,
-      cycle: 'MONTHLY',
-      creditCard: input.creditCard,
-      creditCardHolderInfo: input.creditCardHolderInfo,
-      remoteIp: input.remoteIp
-    };
 
-    const { data } = await firstValueFrom(                                                   
-      this.http.post('/subscriptions', subscriptionInput, { headers: this.authHeaders }),
-    );                                                                                       
-    return data;                                                                             
   }
 
   async updateSubscription(input: AsaasUpdateSubscriptionInput) {
