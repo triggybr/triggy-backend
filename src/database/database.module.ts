@@ -6,11 +6,14 @@ import { User, UserSchema } from '../modules/user/schemas/user.schema';
 import { Plan, PlanSchema } from '../modules/plans/schemas/plan.schema';
 import { Integration, IntegrationSchema } from '../modules/integrations/schemas/integration.schema';
 import { UserIntegration, UserIntegrationSchema } from '../modules/integrations/schemas/user-integration.schema';
+import { Coupon, CouponSchema } from '../modules/checkout/schemas/coupon.schema';
 import { WebhookSeeder } from './seeders/webhook.seeder';
 import { UserSeeder } from './seeders/user.seeder';
 import { PlanSeeder } from './seeders/plan.seeder';
 import { IntegrationSeeder } from './seeders/integration.seeder';
 import { UserIntegrationSeeder } from './seeders/user-integration.seeder';
+import { CouponSeeder } from './seeders/coupon.seeder';
+import { UserStats, UserStatsSchema } from '../modules/integrations/schemas/user-stats.schema';
 
 @Module({
   imports: [
@@ -27,6 +30,8 @@ import { UserIntegrationSeeder } from './seeders/user-integration.seeder';
       { name: Plan.name, schema: PlanSchema },
       { name: Integration.name, schema: IntegrationSchema },
       { name: UserIntegration.name, schema: UserIntegrationSchema },
+      { name: UserStats.name, schema: UserStatsSchema },
+      { name: Coupon.name, schema: CouponSchema },
     ]),
   ],
   providers: [
@@ -35,6 +40,7 @@ import { UserIntegrationSeeder } from './seeders/user-integration.seeder';
     PlanSeeder,
     IntegrationSeeder,
     UserIntegrationSeeder,
+    CouponSeeder,
   ]
 })
 export class DatabaseModule { }
