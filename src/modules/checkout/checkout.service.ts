@@ -26,11 +26,11 @@ export class CheckoutService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Signature.name) private readonly signatureModel: Model<SignatureDocument>,
     @InjectModel(UserStats.name) private readonly userStatsModel: Model<UserStatsDocument>,
-  ) {}
+  ) { }
 
   async applyCoupon(input: ApplyCouponDto) {
-    const coupon = await this.couponModel.findOne({ 
-      code: input.couponCode.toUpperCase() 
+    const coupon = await this.couponModel.findOne({
+      code: input.couponCode.toUpperCase()
     }).lean();
 
     if (!coupon) {
@@ -47,7 +47,7 @@ export class CheckoutService {
       });
     }
 
-    const plan = await this.planModel.findOne({ 
+    const plan = await this.planModel.findOne({
       id: input.planId
     }).lean();
 
@@ -61,15 +61,15 @@ export class CheckoutService {
     const discountAmount = coupon.type === 'PERCENT'
       ? Math.round((coupon.discount * plan.priceValue) / 100)
       : coupon.discount;
-    
+
     const finalPrice = Math.max(0, plan.priceValue - discountAmount);
 
     return {
       valid: true,
-      coupon: { 
-        code: coupon.code, 
-        discount: coupon.discount, 
-        type: coupon.type, 
+      coupon: {
+        code: coupon.code,
+        discount: coupon.discount,
+        type: coupon.type,
         description: coupon.description,
         valid: coupon.valid
       },
@@ -80,6 +80,7 @@ export class CheckoutService {
 
   async processPayment(externalId: string, input: ProcessPaymentDto, remoteIp: string) {
     const user = await this.userModel.findOne({ externalId }).lean();
+
     if (!user) throw new NotFoundException({
       message: 'User not found',
       code: ErrorCodes.USER_NOT_FOUND,
@@ -154,7 +155,7 @@ export class CheckoutService {
       remoteIp,
     };
 
-    const subscription = await this.asaasService.createSubscriptionWithCreditCard(payload);
+    const subscription = await this.asaasService.createSubscriptionWithCreditCard(externalId, payload);
 
     await this.asaasService.updateSubscription({
       id: subscription?.id,
@@ -162,7 +163,7 @@ export class CheckoutService {
     })
 
     signature['externalId'] = subscription?.id,
-    await this.signatureModel.create(signature);
+      await this.signatureModel.create(signature);
 
     return {
       success: true,
@@ -190,10 +191,10 @@ export class CheckoutService {
         this.logger.error('UserStats not found')
         return
       }
-  
+
       const orderCreatedDate = dto.dateCreated.split(' ')[0];
       const signatureDate = signature.createdAt.split('T')[0];
-  
+
       let coupon;
       let discountAmount = 0;
       if (orderCreatedDate === signatureDate && signature.couponCode) {
@@ -206,7 +207,7 @@ export class CheckoutService {
           ? Math.round((coupon.discount * signature.priceValue) / 100)
           : coupon.discount;
       }
-  
+
       const order = {
         id: uuidGenerator(),
         userId: signature.userId,
@@ -221,26 +222,26 @@ export class CheckoutService {
         },
         discountValue: discountAmount,
       }
-  
+
       const now = new Date().toISOString()
-      
+
       order['externalId'] = dto.payment.id,
-      order['approvedAt'] = now,
-      order['createdAt'] = now,
-      order['updatedAt'] = now,
-  
-      await this.orderModel.create(order);
+        order['approvedAt'] = now,
+        order['createdAt'] = now,
+        order['updatedAt'] = now,
+
+        await this.orderModel.create(order);
 
       const newDate = new Date();
       newDate.setMonth(newDate.getMonth() + 1);
 
-      await this.signatureModel.updateOne({ id: signature.id }, { 
+      await this.signatureModel.updateOne({ id: signature.id }, {
         nextBillingDate: newDate.toISOString(),
         webhookQuota: plan.webhookQuota,
         integrationQuota: plan.integrationQuota,
       })
 
-      await this.userStatsModel.updateOne({ id: userStats.id }, { 
+      await this.userStatsModel.updateOne({ id: userStats.id }, {
         usedWebhookQuota: 0,
         usedIntegrationQuota: 0,
       });
