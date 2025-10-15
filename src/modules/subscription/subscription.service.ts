@@ -7,6 +7,7 @@ import { Signature, SignatureDocument } from '../user/schemas/signature.schema';
 import { BillingHistoryQueryDto } from './dto/billing-history-query.dto';
 import { BillingHistoryResponseDto, UpgradeOptionsResponseDto } from './dto/subscription-responses.dto';
 import { UpgradeOptionsQueryDto } from './dto/upgrade-options-query.dto';
+import { User, UserDocument } from '../user/schemas/user.schema';
 
 @Injectable()
 export class SubscriptionService {
@@ -16,6 +17,7 @@ export class SubscriptionService {
         @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
         @InjectModel(Plan.name) private readonly planModel: Model<PlanDocument>,
         @InjectModel(Signature.name) private readonly signatureModel: Model<SignatureDocument>,
+        @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     ) { }
 
     async getBillingHistory(userId: string, query: BillingHistoryQueryDto): Promise<BillingHistoryResponseDto> {
@@ -175,13 +177,17 @@ export class SubscriptionService {
         };
     }
 
-    async getUpgradeOptions(userId: string, query: UpgradeOptionsQueryDto): Promise<UpgradeOptionsResponseDto> {
+    async getUpgradeOptions(externalId: string, query: UpgradeOptionsQueryDto): Promise<UpgradeOptionsResponseDto> {
         const { includeFeatureComparison = false } = query;
+
+        const user = await this.userModel.findOne({ externalId }).lean();
 
         // Get user's current signature
         const signature = await this.signatureModel
-            .findOne({ userId, active: true })
+            .findOne({ userId: user?.id, active: true })
             .lean();
+
+        console.log(signature)
 
         // Get all plans sorted by price
         const plans = await this.planModel

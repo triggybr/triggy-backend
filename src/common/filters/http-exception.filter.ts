@@ -10,6 +10,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let message = 'Internal server error';
     let code = 'INTERNAL_ERROR';
 
+    const err = exception as any;
+
+    if (err?.response?.data) {
+      const aMessage = `${err.response.data.message} - ${err.response.data.code} - ${err.response.data.status}`
+      console.log(aMessage)
+    } else {
+      console.log(exception)
+    }
+
+
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const resp: any = exception.getResponse();

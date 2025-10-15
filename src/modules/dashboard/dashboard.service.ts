@@ -62,7 +62,7 @@ export class DashboardService {
 
     const webhooksLast7Days = this.fillLast7Days(last7DaysAgg);
 
-    const nextBillingDate = signature?.nextBillingDate.split('T')[0];
+    const nextBillingDate = signature?.nextBillingDate?.split('T')[0];
 
     const subscriptionInfo = signature && {
       planName: signature.type,
