@@ -15,9 +15,6 @@ export class Integration {
   name: string;
 
   @Prop()
-  color: string;
-
-  @Prop()
   description: string;
 
   @Prop({ type: [Object] })
@@ -27,7 +24,6 @@ export class Integration {
     destinations: {
       platform: string;
       name: string;
-      color: string;
       description?: string;
       additionalFields: string[];
       actions: {

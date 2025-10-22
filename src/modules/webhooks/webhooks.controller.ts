@@ -22,11 +22,12 @@ export class WebhooksController {
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Número de itens por página (padrão 20, máximo 100)' })
   @ApiQuery({ name: 'integrationId', required: false, type: String, description: 'Filtrar por ID de integração específica' })
   @ApiQuery({ name: 'status', required: false, enum: ['success', 'error'], description: 'Filtrar por status do webhook' })
-  @ApiQuery({ name: 'startDate', required: false, type: String, description: 'Data de início para filtro (formato YYYY-MM-DD)' })
-  @ApiQuery({ name: 'endDate', required: false, type: String, description: 'Data de fim para filtro (formato YYYY-MM-DD)' })
-  async list(@Query() query: ListWebhooksDto): Promise<WebhooksResponseDto> {
+  async list(
+    @ActiveUserExternalId() externalId: string,
+    @Query() query: ListWebhooksDto
+  ): Promise<WebhooksResponseDto> {
     try {
-      return this.webhooksService.listWebhooks(query);
+      return this.webhooksService.listWebhooks(externalId, query);
     } catch (error) {
       this.logger.error(error)
       throw error

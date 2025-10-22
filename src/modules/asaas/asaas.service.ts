@@ -80,8 +80,6 @@ export class AsaasService {
       );
 
       return data;
-
-
     } catch (error) {
       throw error
     }
@@ -92,9 +90,17 @@ export class AsaasService {
 
   async updateSubscription(input: AsaasUpdateSubscriptionInput) {
     const finalValue = parseFloat((input.value / 100).toFixed(2));
+    const status = input.status || 'ACTIVE';
 
     const { data } = await firstValueFrom(
-      this.http.put(`/subscriptions/${input.id}`, { value: finalValue }, { headers: this.authHeaders })
+      this.http.put(`/subscriptions/${input.id}`, { value: finalValue, status }, { headers: this.authHeaders })
+    );
+    return data;
+  }
+
+  async deleteSubscription(id: string) {
+    const { data } = await firstValueFrom(
+      this.http.delete(`/subscriptions/${id}`, { headers: this.authHeaders })
     );
     return data;
   }

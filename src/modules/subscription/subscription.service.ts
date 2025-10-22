@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order, OrderDocument } from '../checkout/schemas/order.schema';
@@ -8,6 +8,7 @@ import { BillingHistoryQueryDto } from './dto/billing-history-query.dto';
 import { BillingHistoryResponseDto, UpgradeOptionsResponseDto } from './dto/subscription-responses.dto';
 import { UpgradeOptionsQueryDto } from './dto/upgrade-options-query.dto';
 import { User, UserDocument } from '../user/schemas/user.schema';
+import { ErrorCodes } from 'src/common/codes';
 
 @Injectable()
 export class SubscriptionService {
@@ -20,8 +21,15 @@ export class SubscriptionService {
         @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     ) { }
 
-    async getBillingHistory(userId: string, query: BillingHistoryQueryDto): Promise<BillingHistoryResponseDto> {
+    async getBillingHistory(externalId: string, query: BillingHistoryQueryDto): Promise<BillingHistoryResponseDto> {
         const { limit = 10, offset = 0, status, startDate, endDate } = query;
+        
+        const user = await this.userModel.findOne({ externalId }).lean();
+        if (!user) {
+            throw new NotFoundException({ message: 'User not found', code: ErrorCodes.USER_NOT_FOUND });
+        }
+
+        const userId = user.id;
 
         // Build query filter
         const filter: any = { userId };
@@ -41,7 +49,7 @@ export class SubscriptionService {
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) {
-                filter.createdAt.$gte = startDate;
+                filter.createdAt.$gte = new Date(startDate).toISOString();
             }
             if (endDate) {
                 // Include the entire end date
@@ -65,24 +73,8 @@ export class SubscriptionService {
             .findOne({ userId, active: true })
             .lean();
 
-        // Get plan information
-        const planIds = [...new Set(orders.map(o => {
-            // We need to get plan info from signature or deduce it
-            return signature?.planId;
-        }).filter(Boolean))];
-
-        const plans = await this.planModel.find({ id: { $in: planIds } }).lean();
-        const planMap = new Map(plans.map(p => [p.id, p]));
-
-        // Get current plan for signature
-        let currentPlan: any = null;
-        if (signature) {
-            currentPlan = planMap.get(signature.planId) || await this.planModel.findOne({ id: signature.planId }).lean();
-        }
-
         // Format invoices
         const invoices = orders.map(order => {
-            const plan = currentPlan; // Assuming all orders use current plan
             const createdDate = new Date(order.createdAt);
             const dueDate = new Date(createdDate);
             dueDate.setDate(dueDate.getDate() + 1); // Due date is next day
@@ -104,13 +96,13 @@ export class SubscriptionService {
 
             return {
                 id: order.id,
-                invoiceNumber: `INV-${order.id.substring(0, 8).toUpperCase()}`,
+                invoiceNumber: order.id,
                 date: createdDate.toISOString().split('T')[0],
                 dueDate: dueDate.toISOString().split('T')[0],
                 amount: finalAmount,
                 currency: 'BRL',
                 status: statusMap[order.status] || 'pending',
-                planName: plan?.name || signature?.type || 'Unknown',
+                planName: signature?.type || 'Unknown',
                 period: {
                     start: periodStart.toISOString().split('T')[0],
                     end: periodEnd.toISOString().split('T')[0],
@@ -118,7 +110,6 @@ export class SubscriptionService {
                 paymentMethod: order.paymentMethod === 'CARD' ? {
                     type: 'card',
                     last4: signature?.last4,
-                    brand: 'Visa', // Default, could be enhanced
                 } : undefined,
                 paidAt: order.approvedAt || undefined,
                 invoiceUrl: undefined,
@@ -128,18 +119,17 @@ export class SubscriptionService {
 
         // Build upcoming invoice if signature exists and is active
         let upcomingInvoice: any = undefined;
-        if (signature && signature.active && signature.nextBillingDate && currentPlan) {
+        if (signature && signature.active && signature.nextBillingDate) {
             const nextBillingDate = new Date(signature.nextBillingDate);
             const periodStart = new Date(nextBillingDate);
             const periodEnd = new Date(nextBillingDate);
             periodEnd.setMonth(periodEnd.getMonth() + 1);
 
             upcomingInvoice = {
-                id: `upcoming_${signature.id}`,
                 date: nextBillingDate.toISOString().split('T')[0],
-                amount: currentPlan.priceValue,
+                amount: signature.priceValue,
                 currency: 'BRL',
-                planName: currentPlan.name,
+                planName: signature.type,
                 period: {
                     start: periodStart.toISOString().split('T')[0],
                     end: periodEnd.toISOString().split('T')[0],
@@ -187,8 +177,6 @@ export class SubscriptionService {
             .findOne({ userId: user?.id, active: true })
             .lean();
 
-        console.log(signature)
-
         // Get all plans sorted by price
         const plans = await this.planModel
             .find()
@@ -233,6 +221,14 @@ export class SubscriptionService {
                     features.push(`${plan.webhookQuota.toLocaleString('pt-BR')} webhooks/mês`);
                 }
 
+                // Add log view quota comparison if available
+                if (plan.logViewQuota && currentPlan?.logViewQuota) {
+                    console.log('entrou aq')
+                    features.push(`${plan.logViewQuota} dias de histórico (vs ${currentPlan.logViewQuota} dias atual)`);
+                } else if (plan.logViewQuota) {
+                    features.push(`${plan.logViewQuota} dias de histórico`);
+                }
+
                 return {
                     id: plan.id,
                     planName: plan.name,
@@ -253,6 +249,9 @@ export class SubscriptionService {
         let featureComparison: any = undefined;
         if (includeFeatureComparison && upgradeOptions.length > 0) {
             const targetPlan = plans.find(p => p.id === upgradeOptions[0].id);
+
+            console.log('targetPlan', targetPlan)
+            console.log('currentPlan', currentPlan)
 
             if (targetPlan && currentPlan) {
                 const allFeatures = [...new Set([...currentPlan.features, ...targetPlan.features])];

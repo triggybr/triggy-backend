@@ -14,9 +14,6 @@ export class PlatformDto {
   @ApiProperty({ example: 'Hotmart' })
   name: string;
 
-  @ApiProperty({ example: 'bg-orange-600 dark:bg-orange-500' })
-  color: string;
-
   @ApiProperty({ example: 'Plataforma de produtos digitais', required: false })
   description?: string;
 
@@ -108,9 +105,6 @@ export class AvailableDestinationDto {
   @ApiProperty({ example: 'AstronMembers' })
   name: string;
 
-  @ApiProperty({ example: 'bg-purple-600 dark:bg-purple-500' })
-  color: string;
-
   @ApiProperty({ example: true })
   requiresUrl: boolean;
 
@@ -144,9 +138,6 @@ export class AvailableIntegrationDto {
 
   @ApiProperty({ example: 'Hotmart' })
   name: string;
-
-  @ApiProperty({ example: 'bg-orange-600 dark:bg-orange-500' })
-  color: string;
 
   @ApiProperty({ example: 'Plataforma de produtos digitais', required: false })
   description?: string;

@@ -21,11 +21,11 @@ export class SubscriptionController {
         type: BillingHistoryResponseDto,
     })
     async getBillingHistory(
-        @ActiveUserExternalId() userId: string,
+        @ActiveUserExternalId() externalId: string,
         @Query() query: BillingHistoryQueryDto,
     ): Promise<BillingHistoryResponseDto> {
         try {
-            return await this.subscriptionService.getBillingHistory(userId, query);
+            return await this.subscriptionService.getBillingHistory(externalId, query);
         } catch (error) {
             this.logger.error(error);
             throw error;

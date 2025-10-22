@@ -45,9 +45,9 @@ export class DashboardService {
       }
     }
 
-    const [userStats, integrationsAgg, last7DaysAgg, recentWebhooks] = await Promise.all([
+    const [userStats, webhooksSuccessRate, last7DaysAgg, recentWebhooks] = await Promise.all([
       this.userStatsModel.findOne({ userId: user.id }).lean(),
-      this.getUserIntegrationsAgg(user.id),
+      this.getWebhookSuccessRate(user.id),
       this.getLast7DaysAgg(user.id),
       this.getRecentWebhooks(user.id),
     ]);
@@ -55,10 +55,6 @@ export class DashboardService {
     const webhooksUsed = userStats?.usedWebhookQuota ?? 0;
     const integrationsCreated = userStats?.usedIntegrationQuota ?? 0;
     const webhooksLimit = signature?.webhookQuota ?? 0;
-
-    const totalSuccess = integrationsAgg[0]?.totalSuccess ?? 0;
-
-    const successRate = webhooksUsed > 0 ? Number(((totalSuccess / webhooksUsed) * 100).toFixed(2)) : 0;
 
     const webhooksLast7Days = this.fillLast7Days(last7DaysAgg);
 
@@ -76,7 +72,7 @@ export class DashboardService {
         webhooksUsed,
         webhooksLimit,
         integrations: integrationsCreated,
-        successRate,
+        successRate: webhooksSuccessRate,
       },
       chartData: webhooksLast7Days,
       recentActivities: recentWebhooks,
@@ -84,17 +80,28 @@ export class DashboardService {
     };
   }
 
-  private getUserIntegrationsAgg(userId: string) {
-    return this.userIntegrationModel.aggregate([
-      { $match: { userId } },
-      {
-        $group: {
-          _id: null,
-          totalSuccess: { $sum: { $ifNull: ['$successCount', 0] } },
-          totalError: { $sum: { $ifNull: ['$errorCount', 0] } },
-        },
-      },
-    ])
+  private async getWebhookSuccessRate(userId: string) {
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - 6);
+
+    const successWebhooks = await this.webhookModel.find({
+      userId,
+      status: 'SUCCESS',
+      triggeredAt: { $gte: start.toISOString() }
+    }).countDocuments();
+
+    const errorWebhooks = await this.webhookModel.find({
+      userId,
+      status: 'ERROR',
+      triggeredAt: { $gte: start.toISOString() }
+    }).countDocuments();
+
+    const totalWebhooks = successWebhooks + errorWebhooks;
+    const successRate = totalWebhooks > 0 ? Math.round((successWebhooks / totalWebhooks) * 100) : 0;
+
+    return successRate;
   }
 
   private async getRecentWebhooks(userId: string) {
@@ -183,7 +190,7 @@ export class DashboardService {
     }
 
     const userStats = await this.userStatsModel.findOne({ userId: user.id }).lean();
-    const integrationsAgg = await this.getUserIntegrationsAgg(user.id);
+    const integrationsAgg = await this.getWebhookSuccessRate(user.id);
 
     const webhooksUsed = userStats?.usedWebhookQuota ?? 0;
     const webhooksLimit = signature?.webhookQuota ?? 0;

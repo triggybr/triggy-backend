@@ -27,15 +27,12 @@ export class UserIntegrationSeeder implements OnModuleInit {
                     name: 'Hotmart → AstroMembers (Criar Membro)',
                     source: {
                         platform: 'hotmart',
-                        name: 'Hotmart',
-                        color: 'orange-600',
                         event: 'PURCHASE_APPROVED',
                         eventDescription: 'Quando uma compra é aprovada',
                     },
                     destination: {
                         platform: 'astromembers',
                         name: 'AstroMembers',
-                        color: 'purple-600',
                         action: 'create_member',
                         actionDescription: 'Cria um novo membro na plataforma',
                         additionalFields: [
@@ -59,14 +56,12 @@ export class UserIntegrationSeeder implements OnModuleInit {
                     source: {
                         platform: 'hotmart',
                         name: 'Hotmart',
-                        color: 'orange-600',
                         event: 'PURCHASE_APPROVED',
                         eventDescription: 'Quando uma compra é aprovada',
                     },
                     destination: {
                         platform: 'discord',
                         name: 'Discord',
-                        color: 'indigo-500',
                         action: 'send_message',
                         actionDescription: 'Envia mensagem para um canal do Discord',
                         additionalFields: [
@@ -90,14 +85,12 @@ export class UserIntegrationSeeder implements OnModuleInit {
                     source: {
                         platform: 'hotmart',
                         name: 'Hotmart',
-                        color: 'orange-600',
                         event: 'PURCHASE_REFUNDED',
                         eventDescription: 'Quando uma compra é reembolsada',
                     },
                     destination: {
                         platform: 'astromembers',
                         name: 'AstroMembers',
-                        color: 'purple-600',
                         action: 'remove_member',
                         actionDescription: 'Remove o acesso do membro na plataforma',
                         additionalFields: [
@@ -121,14 +114,12 @@ export class UserIntegrationSeeder implements OnModuleInit {
                     source: {
                         platform: 'hotmart',
                         name: 'Hotmart',
-                        color: 'orange-600',
                         event: 'PURCHASE_APPROVED',
                         eventDescription: 'Quando uma compra é aprovada',
                     },
                     destination: {
                         platform: 'discord',
                         name: 'Discord',
-                        color: 'indigo-500',
                         action: 'add_role',
                         actionDescription: 'Adiciona cargo ao usuário',
                         additionalFields: [

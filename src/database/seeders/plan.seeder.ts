@@ -35,11 +35,13 @@ export class PlanSeeder implements OnModuleInit {
             'Até 1.000 webhooks/mês',
             '3 integrações ativas',
             'Suporte por e-mail',
-            'Documentação da API'
+            'Documentação da API',
+            '7 dias de histórico de logs'
           ],
           popular: false,
           webhookQuota: 1000,
           integrationQuota: 3,
+          logViewQuota: 7
         },
         {
           id: 'plan_pro',
@@ -52,12 +54,13 @@ export class PlanSeeder implements OnModuleInit {
             '10 integrações ativas',
             'Suporte prioritário',
             'Documentação da API',
-            'Webhooks em tempo real',
+            '30 dias de histórico de logs',
             'Relatórios avançados'
           ],
           popular: true,
           webhookQuota: 10000,
           integrationQuota: 10,
+          logViewQuota: 30
         },
         {
           id: 'plan_enterprise',
@@ -70,7 +73,7 @@ export class PlanSeeder implements OnModuleInit {
             'Integrações ilimitadas',
             'Suporte 24/7',
             'Documentação da API',
-            'Webhooks em tempo real',
+            '90 dias de histórico de logs',
             'Relatórios avançados',
             'Conta dedicada',
             'Personalização de endpoints'
@@ -78,6 +81,7 @@ export class PlanSeeder implements OnModuleInit {
           popular: false,
           webhookQuota: 1000000,
           integrationQuota: 50,
+          logViewQuota: 90
         },
       ];
 

@@ -24,7 +24,6 @@ export class UserIntegration {
   source: {
     platform: string;
     name?: string;
-    color?: string;
     event: string;
     eventDescription?: string;
   };
@@ -33,7 +32,6 @@ export class UserIntegration {
   destination: {
     platform: string;
     name?: string;
-    color?: string;
     action: string;
     actionDescription?: string;
     additionalFields?: Array<{ name: string; value: string }>;

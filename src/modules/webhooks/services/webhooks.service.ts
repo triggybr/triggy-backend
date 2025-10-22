@@ -25,8 +25,18 @@ export class WebhooksService {
     private readonly eventMappingOrchestrator: EventMappingOrchestrator,
   ) { }
 
-  async listWebhooks(listWebhooksDto: ListWebhooksDto) {
-    const { page = 1, limit = 10, integrationId, status, startDate, endDate } = listWebhooksDto;
+  async listWebhooks(externalId: string, listWebhooksDto: ListWebhooksDto) {
+    const { page = 1, limit = 10, integrationId, status } = listWebhooksDto;
+
+    const user = await this.userModel.findOne({ externalId }).lean();
+    if (!user) {
+      throw new NotFoundException({
+        message: 'User not found',
+        code: ErrorCodes.USER_NOT_FOUND,
+      });
+    }
+
+    const signature = await this.signatureModel.findOne({ userId: user.id }).lean();
 
     const filters = {};
 
@@ -36,10 +46,19 @@ export class WebhooksService {
     if (status) {
       filters['status'] = status.toUpperCase();
     }
-    if (startDate || endDate) {
-      filters['triggeredAt'] = {};
-      if (startDate) filters['triggeredAt']['$gte'] = new Date(startDate);
-      if (endDate) filters['triggeredAt']['$lte'] = new Date(endDate);
+
+    if (signature && signature.logViewQuota) {
+      const maxDays = signature.logViewQuota;
+      const now = new Date();
+      const maxPastDate = new Date();
+      maxPastDate.setDate(now.getDate() - maxDays);
+      maxPastDate.setHours(0, 0, 0, 0);
+
+      filters['triggeredAt'] = {
+        $gte: maxPastDate.toISOString()
+      };
+
+      this.logger.log(`Filtering webhooks for last ${maxDays} days (from ${maxPastDate.toISOString()})`);
     }
 
     const skip = (page - 1) * limit;
@@ -67,8 +86,6 @@ export class WebhooksService {
       filters: {
         integrationId: integrationId,
         status: status?.toLocaleLowerCase(),
-        startDate: startDate,
-        endDate: endDate,
       }
     };
   }
@@ -225,7 +242,6 @@ export class WebhooksService {
       const { responseBody, responseStatus, responseTime } = await this.eventMappingOrchestrator.execute(payload, userIntegration);
       newWebhook.status = 'SUCCESS';
       newWebhook.responseBody = JSON.stringify(responseBody);
-      console.log(responseBody)
       newWebhook.responseStatus = responseStatus;
       newWebhook.responseTime = responseTime;
 
@@ -285,7 +301,6 @@ export class WebhooksService {
         source: {
           platform: integration.source?.platform || 'unknown',
           name: integration.source?.name || 'Unknown',
-          color: integration.source?.color || 'bg-gray-500',
           url: integration.source?.url,
           description: integration.source?.description,
           event: integration.source?.event,
@@ -294,7 +309,6 @@ export class WebhooksService {
         destination: {
           platform: integration.destination?.platform || 'unknown',
           name: integration.destination?.name || 'Unknown',
-          color: integration.destination?.color || 'bg-gray-500',
           url: integration.destination?.url,
           description: integration.destination?.description,
           action: integration.destination?.action,

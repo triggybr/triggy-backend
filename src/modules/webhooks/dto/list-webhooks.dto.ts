@@ -26,14 +26,4 @@ export class ListWebhooksDto {
   @IsOptional()
   @IsEnum(['success', 'error'])
   status?: 'success' | 'error';
-
-  @ApiProperty({ description: 'Data inicial para filtrar webhooks (formato ISO 8601).', required: false })
-  @IsOptional()
-  @IsDateString()
-  startDate?: string;
-
-  @ApiProperty({ description: 'Data final para filtrar webhooks (formato ISO 8601).', required: false })
-  @IsOptional()
-  @IsDateString()
-  endDate?: string;
 } 

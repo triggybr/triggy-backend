@@ -13,6 +13,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const err = exception as any;
 
     if (err?.response?.data) {
+      console.log(err?.response?.data)
       const aMessage = `${err.response.data.message} - ${err.response.data.code} - ${err.response.data.status}`
       console.log(aMessage)
     } else {

@@ -18,11 +18,6 @@ export class SourceDto {
   @IsString()
   name?: string;
 
-  @ApiProperty({ description: 'Cor associada à plataforma de origem.', example: '#f04e23', required: false })
-  @IsOptional()
-  @IsString()
-  color?: string;
-
   @ApiProperty({ description: 'Descrição do evento de origem.', example: 'Quando uma compra é aprovada', required: false })
   @IsOptional()
   @IsString()
@@ -62,11 +57,6 @@ export class DestinationDto {
   @IsOptional()
   @IsString()
   name?: string;
-
-  @ApiProperty({ description: 'Cor associada à plataforma de destino.', example: '#f04e23', required: false })
-  @IsOptional()
-  @IsString()
-  color?: string;
 
   @ApiProperty({ description: 'Descrição da ação de destino.', example: 'Cria um novo membro', required: false })
   @IsOptional()

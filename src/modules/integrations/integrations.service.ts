@@ -240,7 +240,6 @@ export class IntegrationsService {
       id: integration.id,
       platform: integration.platform,
       name: integration.name,
-      color: integration.color,
       description: integration.description,
       events: integration.events,
     }

@@ -31,6 +31,9 @@ export class Plan {
 
   @Prop()
   integrationQuota: number;
+
+  @Prop()
+  logViewQuota: number;
 }
 
 export const PlanSchema = SchemaFactory.createForClass(Plan);

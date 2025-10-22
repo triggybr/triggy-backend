@@ -42,6 +42,9 @@ export class Signature {
   integrationQuota: number;
 
   @Prop()
+  logViewQuota: number;
+
+  @Prop()
   createdAt: string;
 
   @Prop()

@@ -36,12 +36,6 @@ export class WebhookPlatformDto {
   name: string;
 
   @ApiProperty({ 
-    description: 'Cor da plataforma',
-    example: 'bg-orange-600 dark:bg-orange-500'
-  })
-  color: string;
-
-  @ApiProperty({ 
     description: 'URL da plataforma',
     example: 'https://app.astronmembers.com/integrations/webhooks',
     nullable: true
@@ -213,20 +207,6 @@ export class WebhookFiltersDto {
     nullable: true
   })
   status?: string | null;
-
-  @ApiProperty({ 
-    description: 'Data inicial para filtragem (AAAA-MM-DD)',
-    example: '2024-01-01',
-    nullable: true
-  })
-  startDate?: string;
-
-  @ApiProperty({ 
-    description: 'Data final para filtragem (AAAA-MM-DD)',
-    example: '2024-01-31',
-    nullable: true
-  })
-  endDate?: string;
 }
 
 export class WebhookPaginationDto {

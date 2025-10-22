@@ -119,6 +119,76 @@ export class CheckoutService {
 
     const now = new Date().toISOString()
 
+    const existingSignature = await this.signatureModel.findOne({ userId: user.id }).lean();
+    if (existingSignature) {
+      if (existingSignature.priceValue <= plan.priceValue) {
+        throw new BadRequestException({
+          message: 'you cant regress from plan',
+          code: ErrorCodes.INVALID_PLAN,
+        });
+      }
+      
+      if (input.couponCode && existingSignature.planId === plan.id) {
+        throw new BadRequestException({
+          message: 'Invalid coupon',
+          code: ErrorCodes.INVALID_COUPON,
+        })
+      }
+
+      await this.asaasService.deleteSubscription(existingSignature.externalId);
+
+      const finalPrice = Math.max(0, plan.priceValue - discountAmount);
+
+      const payload = {
+        value: finalPrice,
+        externalReference: existingSignature.id,
+        creditCard: {
+          holderName: input.paymentData.cardName,
+          number: input.paymentData.cardNumber,
+          expiryMonth: input.paymentData.expiryMonth,
+          expiryYear: input.paymentData.expiryYear,
+          ccv: input.paymentData.cvv,
+        },
+        creditCardHolderInfo: {
+          name: input.customerData.name,
+          email: input.customerData.email,
+          cpfCnpj: input.customerData.cpfCnpj,
+          postalCode: input.customerData.postalCode,
+          addressNumber: input.customerData.addressNumber,
+          phone: input.customerData.phone,
+        },
+        remoteIp,
+      };
+  
+      const subscription = await this.asaasService.createSubscriptionWithCreditCard(externalId, payload);
+  
+      await this.asaasService.updateSubscription({
+        id: subscription?.id,
+        value: plan.priceValue
+      })
+
+      const signatureToUpdate = {
+        planId: plan.id,
+        last4: input.paymentData.cardNumber.slice(-4),
+        couponCode: input.couponCode,
+        type: plan.name,
+        priceValue: plan.priceValue,
+        active: true,
+        externalId: subscription?.id,
+        webhookQuota: plan.webhookQuota,
+        integrationQuota: plan.integrationQuota,
+        logViewQuota: plan.logViewQuota,
+        updatedAt: now,
+      }
+
+      await this.signatureModel.updateOne({ id: existingSignature.id }, signatureToUpdate);
+
+      return {
+        success: true,
+        message: 'Pagamento processado com sucesso',
+      };
+    }
+
     const signature = {
       id: uuidGenerator(),
       userId: user.id,
@@ -128,6 +198,9 @@ export class CheckoutService {
       type: plan.name,
       priceValue: plan.priceValue,
       active: true,
+      webhookQuota: plan.webhookQuota,
+      integrationQuota: plan.integrationQuota,
+      logViewQuota: plan.logViewQuota,
       createdAt: now,
       updatedAt: now,
     }
@@ -226,11 +299,11 @@ export class CheckoutService {
       const now = new Date().toISOString()
 
       order['externalId'] = dto.payment.id,
-        order['approvedAt'] = now,
-        order['createdAt'] = now,
-        order['updatedAt'] = now,
+      order['approvedAt'] = now,
+      order['createdAt'] = now,
+      order['updatedAt'] = now,
 
-        await this.orderModel.create(order);
+      await this.orderModel.create(order);
 
       const newDate = new Date();
       newDate.setMonth(newDate.getMonth() + 1);
@@ -239,6 +312,7 @@ export class CheckoutService {
         nextBillingDate: newDate.toISOString(),
         webhookQuota: plan.webhookQuota,
         integrationQuota: plan.integrationQuota,
+        logViewQuota: plan.logViewQuota,
       })
 
       await this.userStatsModel.updateOne({ id: userStats.id }, {
