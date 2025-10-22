@@ -223,7 +223,6 @@ export class SubscriptionService {
 
                 // Add log view quota comparison if available
                 if (plan.logViewQuota && currentPlan?.logViewQuota) {
-                    console.log('entrou aq')
                     features.push(`${plan.logViewQuota} dias de histórico (vs ${currentPlan.logViewQuota} dias atual)`);
                 } else if (plan.logViewQuota) {
                     features.push(`${plan.logViewQuota} dias de histórico`);
@@ -249,9 +248,6 @@ export class SubscriptionService {
         let featureComparison: any = undefined;
         if (includeFeatureComparison && upgradeOptions.length > 0) {
             const targetPlan = plans.find(p => p.id === upgradeOptions[0].id);
-
-            console.log('targetPlan', targetPlan)
-            console.log('currentPlan', currentPlan)
 
             if (targetPlan && currentPlan) {
                 const allFeatures = [...new Set([...currentPlan.features, ...targetPlan.features])];

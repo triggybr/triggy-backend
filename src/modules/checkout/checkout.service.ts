@@ -121,7 +121,7 @@ export class CheckoutService {
 
     const existingSignature = await this.signatureModel.findOne({ userId: user.id }).lean();
     if (existingSignature) {
-      if (existingSignature.priceValue <= plan.priceValue) {
+      if (plan.priceValue <= existingSignature.priceValue) {
         throw new BadRequestException({
           message: 'you cant regress from plan',
           code: ErrorCodes.INVALID_PLAN,
