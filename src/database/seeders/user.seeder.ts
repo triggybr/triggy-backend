@@ -28,7 +28,7 @@ export class UserSeeder implements OnModuleInit {
       console.log('Seeding users...');
       const users: Partial<User>[] = [
         {
-          id: 'user_123',
+          id: '2d7ee183-eda7-452f-a8c8-ba2f3c67ea97',
           externalId: 'user_123',
           email: 'admin@example.com',
           document: {
@@ -41,7 +41,7 @@ export class UserSeeder implements OnModuleInit {
       ];
       const userStats: Partial<UserStats>[] = [
         {
-          id: 'stats_123',
+          id: '2d7ee183-eda7-452f-a8c8-ba2f3c67ea97',
           userId: 'user_123',
           usedWebhookQuota: 0,
           usedIntegrationQuota: 0,

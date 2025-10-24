@@ -27,7 +27,7 @@ export class CouponSeeder implements OnModuleInit {
             console.log('Seeding coupons...');
             const coupons: Partial<Coupon>[] = [
                 {
-                    id: 'coupon_001',
+                    id: '07873cc1-3ae6-4f20-90db-fe122bb9fe2c',
                     code: 'WELCOME10',
                     discount: 10,
                     type: 'PERCENT',
@@ -35,7 +35,7 @@ export class CouponSeeder implements OnModuleInit {
                     valid: true,
                 },
                 {
-                    id: 'coupon_002',
+                    id: '2c3420d5-5c39-4c2f-813f-387de06f769d',
                     code: 'SAVE20',
                     discount: 20,
                     type: 'PERCENT',
@@ -43,7 +43,7 @@ export class CouponSeeder implements OnModuleInit {
                     valid: true,
                 },
                 {
-                    id: 'coupon_003',
+                    id: '090f8012-654e-45b0-b4d9-06f283e7a8ea',
                     code: 'FIXED50',
                     discount: 50,
                     type: 'FIXED',
@@ -51,7 +51,7 @@ export class CouponSeeder implements OnModuleInit {
                     valid: true,
                 },
                 {
-                    id: 'coupon_004',
+                    id: '9c30d95f-c11f-49da-83ce-057a02d7a28a',
                     code: 'BLACKFRIDAY',
                     discount: 30,
                     type: 'PERCENT',

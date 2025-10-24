@@ -12,16 +12,6 @@ export class SourceDto {
   @IsString()
   @IsNotEmpty()
   event: string;
-
-  @ApiProperty({ description: 'Nome da plataforma de origem.', example: 'Hotmart', required: false })
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @ApiProperty({ description: 'Descrição do evento de origem.', example: 'Quando uma compra é aprovada', required: false })
-  @IsOptional()
-  @IsString()
-  eventDescription?: string | null;
 }
 
 class AdditionalFields {
@@ -52,16 +42,6 @@ export class DestinationDto {
   @ValidateNested({ each: true })
   @Type(() => AdditionalFields)
   additionalFields?: AdditionalFields[];
-
-  @ApiProperty({ description: 'Nome da plataforma de destino.', example: 'Discord', required: false })
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @ApiProperty({ description: 'Descrição da ação de destino.', example: 'Cria um novo membro', required: false })
-  @IsOptional()
-  @IsString()
-  actionDescription?: string | null;
 }
 
 export class CreateIntegrationDto {

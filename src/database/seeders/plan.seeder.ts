@@ -26,7 +26,7 @@ export class PlanSeeder implements OnModuleInit {
       console.log('Seeding plans...');
       const plans: Partial<Plan>[] = [
         {
-          id: 'plan_basic',
+          id: '5e28617c-5b83-4794-b75a-2835f036b5c6',
           name: 'Básico',
           priceValue: 2990,
           icon: '🚀',
@@ -44,7 +44,7 @@ export class PlanSeeder implements OnModuleInit {
           logViewQuota: 7
         },
         {
-          id: 'plan_pro',
+          id: 'fa6957ba-aa7e-4ba7-8ba7-af524e11bfc6',
           name: 'Profissional',
           priceValue: 9990,
           icon: '⚡',
@@ -63,7 +63,7 @@ export class PlanSeeder implements OnModuleInit {
           logViewQuota: 30
         },
         {
-          id: 'plan_enterprise',
+          id: 'fa19b83a-7a42-4f6a-8cfc-b8473d0e9448',
           name: 'Empresarial',
           priceValue: 29990,
           icon: '🏢',

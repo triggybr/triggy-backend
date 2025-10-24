@@ -26,65 +26,24 @@ export class IntegrationSeeder implements OnModuleInit {
       console.log('Seeding integrations...');
       const integrations: Partial<Integration>[] = [
         {
-          id: 'hotmart',
-          platform: 'hotmart',
-          name: 'Hotmart',
-          description: 'Integração com a plataforma Hotmart para recebimento de webhooks',
+          id: '28c03cd7-6243-4779-a63a-a9595c817541',
+          platform: 'lastlink',
+          name: 'LastLink',
+          description: 'Integração com a plataforma LastLink para recebimento de webhooks',
           events: [
             {
-              name: 'PURCHASE_APPROVED',
-              description: 'Quando uma compra é aprovada',
+              name: 'abandoned.cart',
+              description: 'Quando uma compra é abandonada',
               destinations: [
                 {
-                  platform: 'astromembers',
-                  name: 'AstroMembers',
-                  additionalFields: ['url', 'api_key'],
-                  description: 'Criar membro na plataforma AstroMembers',
+                  platform: 'hotzapp',
+                  name: 'Hotzapp',
+                  additionalFields: ['url'],
+                  description: 'Hotzapp',
                   actions: [
                     {
-                      name: 'create_member',
-                      description: 'Cria um novo membro na plataforma'
-                    },
-                    {
-                      name: 'add_tag',
-                      description: 'Adiciona uma tag ao membro'
-                    }
-                  ]
-                },
-                {
-                  platform: 'discord',
-                  name: 'Discord',
-                  additionalFields: ['url', 'api_key'],
-                  description: 'Envia notificação para o Discord',
-                  actions: [
-                    {
-                      name: 'send_message',
-                      description: 'Envia mensagem para um canal do Discord'
-                    },
-                    {
-                      name: 'add_role',
-                      description: 'Adiciona cargo ao usuário'
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              name: 'PURCHASE_REFUNDED',
-              description: 'Quando uma compra é reembolsada',
-              destinations: [
-                {
-                  platform: 'astromembers',
-                  name: 'AstroMembers',
-                  additionalFields: ['url', 'api_key'],
-                  actions: [
-                    {
-                      name: 'remove_member',
-                      description: 'Remove o acesso do membro na plataforma'
-                    },
-                    {
-                      name: 'remove_tag',
-                      description: 'Remove uma tag do membro'
+                      name: 'create.product',
+                      description: 'Cria um novo produto na plataforma'
                     }
                   ]
                 }

@@ -41,6 +41,12 @@ export class IntegrationsService {
       code: ErrorCodes.SIGNATURE_NOT_FOUND,
     });
 
+    const integration = await this.integrationModel.findOne({ platform: dto.source.platform }).lean();
+    if (!integration) throw new NotFoundException({
+      message: 'Integration not found',
+      code: ErrorCodes.INTEGRATION_NOT_FOUND,
+    });
+
     const planIntegrationQuota = signature.integrationQuota ?? 0;
     const usedIntegrationQuota = userStats.usedIntegrationQuota ?? 0;
     if (!(planIntegrationQuota > usedIntegrationQuota)) {
@@ -52,15 +58,48 @@ export class IntegrationsService {
 
     const now = new Date().toISOString();
 
+    const sourceEvent = integration.events.find(event => event.name === dto.source.event);
+    if (!sourceEvent) throw new NotFoundException({
+      message: 'Event not found',
+      code: ErrorCodes.EVENT_NOT_FOUND,
+    });
+
+    const source = {
+      platform: dto.source.platform,
+      name: integration.name,
+      event: dto.source.event,
+      eventDescription: sourceEvent.description,
+    }
+
+    const destinationPlatform = sourceEvent.destinations.find(destination => destination.platform === dto.destination.platform);
+    if (!destinationPlatform) throw new NotFoundException({
+      message: 'Destination not found',
+      code: ErrorCodes.DESTINATION_NOT_FOUND,
+    });
+
+    const destinationAction = destinationPlatform.actions.find(action => action.name === dto.destination.action);
+    if (!destinationAction) throw new NotFoundException({
+      message: 'Action not found',
+      code: ErrorCodes.ACTION_NOT_FOUND,
+    });
+
+    const destination = {
+      platform: dto.destination.platform,
+      name: destinationPlatform.name,
+      action: dto.destination.action,
+      actionDescription: destinationAction.description,
+      additionalFields: dto.destination.additionalFields,
+    }
+
     const urlCode = uuidGenerator();
-    const integration = await this.userIntegrationModel.create({
+    const userIntegration = await this.userIntegrationModel.create({
       id: uuidGenerator(),
       userId: user.id,
       userStatsId: userStats.id,
       urlCode,
       name: dto.name,
-      source: dto.source,
-      destination: dto.destination,
+      source,
+      destination,
       status: { value: 'ACTIVE', label: 'Ativo' },
       successCount: 0,
       errorCount: 0,
@@ -70,7 +109,7 @@ export class IntegrationsService {
 
     await this.userStatsModel.updateOne({ id: userStats.id }, { $inc: { usedIntegrationQuota: 1 } });
 
-    return this.mapUserIntegrationToResponse(integration.toObject());
+    return this.mapUserIntegrationToResponse(userIntegration.toObject());
   }
 
   async findAllUserIntegrations(externalUserId: string, query: FindAllUserIntegrationsQueryDto) {

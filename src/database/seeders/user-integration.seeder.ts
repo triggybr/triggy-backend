@@ -20,8 +20,8 @@ export class UserIntegrationSeeder implements OnModuleInit {
             console.log('Seeding user integrations...');
             const userIntegrations: Partial<UserIntegration>[] = [
                 {
-                    id: 'int_123',
-                    userId: 'user_123',
+                    id: '969ced6c-2a9c-4959-ac76-571356a7a206',
+                    userId: '2d7ee183-eda7-452f-a8c8-ba2f3c67ea97',
                     userStatsId: 'stats_123',
                     urlCode: 'abc123xyz',
                     name: 'Hotmart → AstroMembers (Criar Membro)',
@@ -48,8 +48,8 @@ export class UserIntegrationSeeder implements OnModuleInit {
                     updatedAt: new Date().toISOString(),
                 },
                 {
-                    id: 'int_456',
-                    userId: 'user_123',
+                    id: '53dd05e3-b1c2-497a-a92a-7401278b0de4',
+                    userId: '2d7ee183-eda7-452f-a8c8-ba2f3c67ea97',
                     userStatsId: 'stats_123',
                     urlCode: 'def456uvw',
                     name: 'Hotmart → Discord (Enviar Mensagem)',
@@ -77,8 +77,8 @@ export class UserIntegrationSeeder implements OnModuleInit {
                     updatedAt: new Date().toISOString(),
                 },
                 {
-                    id: 'int_789',
-                    userId: 'user_123',
+                    id: '1a81e229-94b5-4be1-961c-f076db5c0afb',
+                    userId: '2d7ee183-eda7-452f-a8c8-ba2f3c67ea97',
                     userStatsId: 'stats_123',
                     urlCode: 'ghi789rst',
                     name: 'Hotmart → AstroMembers (Remover Membro)',
@@ -106,8 +106,8 @@ export class UserIntegrationSeeder implements OnModuleInit {
                     updatedAt: new Date().toISOString(),
                 },
                 {
-                    id: 'int_101',
-                    userId: 'user_123',
+                    id: 'f17a8289-811b-4f52-8581-df517d7e43f1',
+                    userId: '2d7ee183-eda7-452f-a8c8-ba2f3c67ea97',
                     userStatsId: 'stats_123',
                     urlCode: 'jkl101mno',
                     name: 'Hotmart → Discord (Adicionar Cargo)',
