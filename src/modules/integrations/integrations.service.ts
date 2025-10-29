@@ -261,7 +261,7 @@ export class IntegrationsService {
       name: integration.name ?? null,
       source: integration.source,
       destination: integration.destination,
-      webhookUrl: `${process.env.API_URL}/v1/webhooks/${integration.urlCode}`,
+      webhookUrl: `${process.env.API_URL}/webhooks/${integration.urlCode}`,
       status: {
         value: integration.status.value.toLowerCase(),
         label: integration.status.label

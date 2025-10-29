@@ -38,7 +38,9 @@ export class WebhooksService {
 
     const signature = await this.signatureModel.findOne({ userId: user.id }).lean();
 
-    const filters = {};
+    const filters = {
+      userId: user.id,
+    };
 
     if (integrationId) {
       filters['userIntegrationId'] = integrationId;
