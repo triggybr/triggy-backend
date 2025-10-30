@@ -38,11 +38,11 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const jwtKey = Buffer.from(process.env.CLERK_JWT_KEY as string, 'base64').toString('utf8')
+      const jwtKey = process.env.CLERK_JWT_KEY as string
       const clerkSecretKey = process.env.CLERK_SECRET_KEY
       const tokenData = await verifyToken(token, {
-        jwtKey: jwtKey,
-        secretKey: clerkSecretKey
+        jwtKey,
+        secretKey: clerkSecretKey,
       });
 
       request.userId = tokenData.sub
