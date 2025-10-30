@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 class AdditionalFields {
   @ApiProperty({ example: 'apiKey' })
   name: string;
-  
+
   @ApiProperty({ example: 'Sua chave de API' })
   value: string;
 }
@@ -74,6 +74,14 @@ export class IntegrationDto {
 
   @ApiProperty({ example: 3 })
   errorCount: number;
+
+  @ApiProperty({
+    example: { "prod_hotmart_123": "prod_astron_456", "prod_hotmart_789": "prod_astron_012" },
+    required: false,
+    nullable: true,
+    description: 'Mapeamento de Product IDs entre origem e destino (Order Bump)'
+  })
+  orderBump?: Record<string, string> | null;
 }
 
 export class IntegrationsResponseDto {

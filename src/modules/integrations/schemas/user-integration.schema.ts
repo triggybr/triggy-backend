@@ -49,6 +49,9 @@ export class UserIntegration {
   @Prop()
   lastTriggered?: string;
 
+  @Prop({ type: Object, required: false })
+  orderBump?: Record<string, string>;
+
   @Prop()
   createdAt: string;
 

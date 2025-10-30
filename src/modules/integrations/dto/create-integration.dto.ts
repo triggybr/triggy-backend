@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, IsUrl, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUrl, ValidateNested, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SourceDto {
@@ -19,7 +19,7 @@ class AdditionalFields {
   @IsString()
   @IsNotEmpty()
   name: string;
-  
+
   @ApiProperty({ description: 'Valor do campo adicional.', example: '1234567890' })
   @IsString()
   @IsNotEmpty()
@@ -59,4 +59,13 @@ export class CreateIntegrationDto {
   @ValidateNested()
   @Type(() => DestinationDto)
   destination: DestinationDto;
+
+  @ApiProperty({
+    description: 'Mapeamento de Product IDs entre origem e destino (Order Bump).',
+    example: { "prod_hotmart_123": "prod_astron_456", "prod_hotmart_789": "prod_astron_012" },
+    required: false
+  })
+  @IsOptional()
+  @IsObject()
+  orderBump?: Record<string, string>;
 } 

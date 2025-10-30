@@ -103,6 +103,7 @@ export class IntegrationsService {
       status: { value: 'ACTIVE', label: 'Ativo' },
       successCount: 0,
       errorCount: 0,
+      orderBump: dto.orderBump,
       createdAt: now,
       updatedAt: now,
     });
@@ -139,7 +140,7 @@ export class IntegrationsService {
   }
 
   async updateUserIntegration(externalId: string, id: string, dto: UpdateIntegrationDto) {
-    const { name, status, destinationUrl } = dto;
+    const { name, status, destinationUrl, orderBump } = dto;
 
     const user = await this.userModel.findOne({ externalId }).lean();
     if (!user) throw new NotFoundException({
@@ -158,6 +159,9 @@ export class IntegrationsService {
     }
     if (destinationUrl) {
       updateData['destination.url'] = destinationUrl;
+    }
+    if (orderBump !== undefined) {
+      updateData.orderBump = orderBump;
     }
 
     const updatedIntegration = await this.userIntegrationModel.findOneAndUpdate(
@@ -271,6 +275,7 @@ export class IntegrationsService {
       lastTriggered: integration.lastTriggered ?? null,
       successCount: integration.successCount ?? 0,
       errorCount: integration.errorCount ?? 0,
+      orderBump: integration.orderBump ?? null,
     };
   };
 
