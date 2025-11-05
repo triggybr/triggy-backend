@@ -10,16 +10,18 @@ import { UserStats, UserStatsSchema } from '../integrations/schemas/user-stats.s
 import { Signature, SignatureSchema } from '../user/schemas/signature.schema';
 import { EventMappingOrchestrator } from './services/event-mapping.orchestrator';
 import { DESTINATION_MAPPERS } from './constants/tokens';
-import { LastlinkAbandonedCartToHotzappCreateProductMapper } from './mappers/destination-mappers/lastlink-abandoned-cart__hotzapp-create-product.mapper';
+import { LastlinkAbandonedCartToHotzappCreateProductMapper } from './mappers/destination-mappers/lastlink/lastlink-abandoned-cart__hotzapp-create-product.mapper';
 import { User, UserSchema } from '../user/schemas/user.schema';
+import { LastlinkPurchaseConfirmedToThemembersCreateUserMapper } from './mappers/destination-mappers/lastlink/lastlink-purchase-confirmed__themembers-create-user';
 
 const mappersProviders = [
   {
     provide: DESTINATION_MAPPERS,
     useFactory: (
       lastlinkToHotzapp: LastlinkAbandonedCartToHotzappCreateProductMapper,
-    ) => [lastlinkToHotzapp],
-    inject: [LastlinkAbandonedCartToHotzappCreateProductMapper],
+      lastlinkToThemembersCreateUser: LastlinkPurchaseConfirmedToThemembersCreateUserMapper,
+    ) => [lastlinkToHotzapp, lastlinkToThemembersCreateUser],
+    inject: [LastlinkAbandonedCartToHotzappCreateProductMapper, LastlinkPurchaseConfirmedToThemembersCreateUserMapper],
   },
 ];
 
@@ -28,6 +30,7 @@ const providers = [
   SqsConsumer,
   EventMappingOrchestrator,
   LastlinkAbandonedCartToHotzappCreateProductMapper,
+  LastlinkPurchaseConfirmedToThemembersCreateUserMapper,
   ...mappersProviders,
 ]
 

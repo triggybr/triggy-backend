@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DestinationMapper, MapperResponse } from '../../contracts/destination-mapper.interface';
-import { UserIntegration } from '../../../integrations/schemas/user-integration.schema';
+import { DestinationMapper, MapperResponse } from '../../../contracts/destination-mapper.interface';
+import { UserIntegration } from '../../../../integrations/schemas/user-integration.schema';
 
 @Injectable()
 export class LastlinkAbandonedCartToHotzappCreateProductMapper implements DestinationMapper {
