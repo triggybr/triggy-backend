@@ -57,7 +57,6 @@ export class LastlinkAbandonedCartToHotzappCreateProductMapper implements Destin
       throw new Error(`Hotzapp API error: ${res.status} - ${text}`);
     }
 
-    const responseBody = await res.json().catch(() => ({}));
-    return { responseStatus, responseBody, responseTime };
+    return { responseStatus, mappedPayload: productData, responseTime };
   }
 }

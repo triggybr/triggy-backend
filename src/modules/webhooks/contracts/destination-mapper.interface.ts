@@ -1,7 +1,7 @@
 import { UserIntegration } from '../../integrations/schemas/user-integration.schema';
 
 export type MapperResponse = {
-  responseBody: any;
+  mappedPayload: any;
   responseStatus: number;
   responseTime: number;
 }

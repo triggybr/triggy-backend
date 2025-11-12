@@ -129,7 +129,7 @@ export class WebhooksService {
       id: uuidGenerator(),
       userId,
       userIntegrationId: userIntegration.id,
-      requestBody: JSON.stringify(payload),
+      responseBody: JSON.stringify(payload),
       endpoint: url,
       method: 'POST',
       triggeredAt: now,
@@ -137,9 +137,9 @@ export class WebhooksService {
     };
 
     try {
-      const { responseBody, responseStatus, responseTime } = await this.eventMappingOrchestrator.execute(payload, userIntegration);
+      const { mappedPayload, responseStatus, responseTime } = await this.eventMappingOrchestrator.execute(payload, userIntegration);
       webhook.status = 'SUCCESS';
-      webhook.responseBody = JSON.stringify(responseBody);
+      webhook.requestBody = JSON.stringify(mappedPayload);
       webhook.responseStatus = responseStatus;
       webhook.responseTime = responseTime;
 
@@ -148,7 +148,6 @@ export class WebhooksService {
       const webhookError = {
         message: error.message || 'Unknown error',
         code: error.code,
-        details: error.stack
       };
       webhook.status = 'ERROR';
       webhook.error = webhookError;
@@ -230,7 +229,7 @@ export class WebhooksService {
       id: uuidGenerator(),
       userId: userId,
       userIntegrationId: originalWebhook.userIntegrationId,
-      requestBody: originalWebhook.requestBody,
+      responseBody: originalWebhook.responseBody,
       endpoint: url,
       method: originalWebhook.method,
       triggeredAt: now,
@@ -240,10 +239,10 @@ export class WebhooksService {
     };
 
     try {
-      const payload = JSON.parse(originalWebhook.requestBody)
-      const { responseBody, responseStatus, responseTime } = await this.eventMappingOrchestrator.execute(payload, userIntegration);
+      const payload = JSON.parse(originalWebhook.responseBody as string);
+      const { mappedPayload, responseStatus, responseTime } = await this.eventMappingOrchestrator.execute(payload, userIntegration);
       newWebhook.status = 'SUCCESS';
-      newWebhook.responseBody = JSON.stringify(responseBody);
+      newWebhook.requestBody = JSON.stringify(mappedPayload);
       newWebhook.responseStatus = responseStatus;
       newWebhook.responseTime = responseTime;
 
@@ -252,7 +251,6 @@ export class WebhooksService {
       const webhookError = {
         message: error.message || 'Unknown error',
         code: error.code,
-        details: error.stack
       };
       newWebhook.status = 'ERROR';
       newWebhook.error = webhookError;

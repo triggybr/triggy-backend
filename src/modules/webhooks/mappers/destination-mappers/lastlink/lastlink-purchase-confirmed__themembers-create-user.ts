@@ -73,7 +73,6 @@ export class LastlinkPurchaseConfirmedToThemembersCreateUserMapper implements De
       throw new Error(`Themembers API error: ${res.status} - ${text}`);
     }
 
-    const responseBody = await res.json().catch(() => ({}));
-    return { responseStatus, responseBody, responseTime };
+    return { responseStatus, mappedPayload: createUserData, responseTime };
   }
 }
