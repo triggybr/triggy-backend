@@ -36,10 +36,10 @@ export class IntegrationSeeder implements OnModuleInit {
               description: 'Quando uma compra é abandonada',
               destinations: [
                 {
-                  platform: 'hotzapp',
-                  name: 'Hotzapp',
+                  platform: 'astronmembers',
+                  name: 'AstronMembers',
                   additionalFields: ['url'],
-                  description: 'Hotzapp',
+                  description: 'AstronMembers',
                   actions: [
                     {
                       name: 'create.product',

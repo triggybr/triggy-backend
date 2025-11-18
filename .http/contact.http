@@ -1,0 +1,102 @@
+### Enviar mensagem de contato - Vendas
+POST http://localhost:8000/contact
+Content-Type: application/json
+
+{
+  "nome": "João Silva",
+  "email": "joao@example.com",
+  "empresa": "Empresa XYZ",
+  "assunto": "vendas",
+  "mensagem": "Gostaria de mais informações sobre os planos disponíveis e como funciona a integração com outras plataformas."
+}
+
+### Enviar mensagem de contato - Suporte (sem empresa)
+POST http://localhost:8000/contact
+Content-Type: application/json
+
+{
+  "nome": "Maria Santos",
+  "email": "maria@example.com",
+  "assunto": "suporte",
+  "mensagem": "Estou com dificuldades para configurar uma integração com o Hotmart. Poderiam me ajudar?"
+}
+
+### Enviar mensagem de contato - Integração
+POST http://localhost:8000/contact
+Content-Type: application/json
+
+{
+  "nome": "Carlos Oliveira",
+  "email": "carlos@example.com",
+  "empresa": "Tech Solutions",
+  "assunto": "integracao",
+  "mensagem": "Gostaria de saber se vocês têm integração com a plataforma XYZ e como poderia implementar isso no meu sistema."
+}
+
+### Enviar mensagem de contato - Parceria
+POST http://localhost:8000/contact
+Content-Type: application/json
+
+{
+  "nome": "Ana Paula",
+  "email": "ana@example.com",
+  "empresa": "Marketing Digital Pro",
+  "assunto": "parceria",
+  "mensagem": "Temos interesse em estabelecer uma parceria comercial. Gostaríamos de agendar uma reunião para discutir as possibilidades."
+}
+
+### Enviar mensagem de contato - Outro
+POST http://localhost:8000/contact
+Content-Type: application/json
+
+{
+  "nome": "Pedro Souza",
+  "email": "pedro@example.com",
+  "assunto": "outro",
+  "mensagem": "Gostaria de sugerir uma melhoria na plataforma: seria interessante ter um dashboard com métricas mais detalhadas."
+}
+
+### Teste de validação - Nome muito curto (deve falhar)
+POST http://localhost:8000/contact
+Content-Type: application/json
+
+{
+  "nome": "J",
+  "email": "joao@example.com",
+  "assunto": "vendas",
+  "mensagem": "Gostaria de mais informações sobre os planos disponíveis."
+}
+
+### Teste de validação - Email inválido (deve falhar)
+POST http://localhost:8000/contact
+Content-Type: application/json
+
+{
+  "nome": "João Silva",
+  "email": "email-invalido",
+  "assunto": "vendas",
+  "mensagem": "Gostaria de mais informações sobre os planos disponíveis."
+}
+
+### Teste de validação - Mensagem muito curta (deve falhar)
+POST http://localhost:8000/contact
+Content-Type: application/json
+
+{
+  "nome": "João Silva",
+  "email": "joao@example.com",
+  "assunto": "vendas",
+  "mensagem": "Curto"
+}
+
+### Teste de validação - Assunto inválido (deve falhar)
+POST http://localhost:8000/contact
+Content-Type: application/json
+
+{
+  "nome": "João Silva",
+  "email": "joao@example.com",
+  "assunto": "assunto_invalido",
+  "mensagem": "Gostaria de mais informações sobre os planos disponíveis."
+}
+

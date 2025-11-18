@@ -1986,6 +1986,116 @@ paths:
                       data:
                         $ref: '#/components/schemas/UpgradeOptionsData'
 
+  # ========== ENDPOINTS DE CONTATO ==========
+  /contact:
+    post:
+      tags:
+        - Contact
+      summary: Enviar mensagem de contato
+      description: Envia uma mensagem através do formulário de contato utilizando Mailchimp Transactional (Mandrill)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  example: "João Silva"
+                  description: Nome completo do remetente
+                email:
+                  type: string
+                  format: email
+                  minLength: 5
+                  maxLength: 100
+                  example: "joao@example.com"
+                  description: Email do remetente
+                empresa:
+                  type: string
+                  maxLength: 100
+                  nullable: true
+                  example: "Empresa XYZ"
+                  description: Nome da empresa (opcional)
+                assunto:
+                  type: string
+                  enum: [vendas, suporte, integracao, parceria, outro]
+                  example: "vendas"
+                  description: Assunto da mensagem
+                mensagem:
+                  type: string
+                  minLength: 10
+                  maxLength: 1000
+                  example: "Gostaria de mais informações sobre os planos disponíveis."
+                  description: Mensagem do contato
+              required:
+                - nome
+                - email
+                - assunto
+                - mensagem
+      responses:
+        200:
+          description: Mensagem enviada com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          messageId:
+                            type: string
+                            nullable: true
+                            example: "msg_abc123xyz456"
+                            description: ID da mensagem no Mailchimp
+                          status:
+                            type: string
+                            enum: [sent, queued, rejected, invalid]
+                            example: "sent"
+                            description: Status do envio
+                        required:
+                          - messageId
+                          - status
+        400:
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - type: object
+                    properties:
+                      message:
+                        example: "Dados inválidos"
+                      errors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            field:
+                              type: string
+                              example: "email"
+                            message:
+                              type: string
+                              example: "Email inválido"
+        500:
+          description: Erro ao enviar mensagem
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - type: object
+                    properties:
+                      message:
+                        example: "Erro interno do servidor."
+
 tags:
   - name: Plans
     description: Operações relacionadas aos planos de assinatura
@@ -1999,3 +2109,5 @@ tags:
     description: Operações de checkout e pagamento
   - name: Subscription
     description: Operações relacionadas à assinatura e cobrança do usuário
+  - name: Contact
+    description: Operações relacionadas ao formulário de contato

@@ -13,6 +13,7 @@ import { UserModule } from './modules/user/user.module';
 import { AsaasModule } from './modules/asaas/asaas.module';
 import { DatabaseModule } from './database/database.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
+import { ContactModule } from './modules/contact/contact.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { SubscriptionModule } from './modules/subscription/subscription.module';
     UserModule,
     AsaasModule,
     SubscriptionModule,
+    ContactModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

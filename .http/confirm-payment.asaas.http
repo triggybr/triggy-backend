@@ -1,0 +1,14 @@
+@externalId = "sub_cumzpabef3bjludb"
+
+###
+POST http://localhost:3000/v1/checkout/confirm-payment
+Content-Type: application/json
+
+{
+	"event": "PAYMENT_CONFIRMED",
+	"dateCreated": "2025-08-24 17:05:45",
+	"payment": {
+		"id": "06b7d583-dd84-469b-842a-52d639543e2c",
+		"subscription": "{{externalId}}"
+	}
+}
