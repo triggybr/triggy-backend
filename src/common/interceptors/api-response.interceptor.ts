@@ -8,7 +8,7 @@ export class ApiResponseInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((data) => ({
         success: true,
-        data: data === undefined ? null : data,
+        data: data === undefined ? undefined : data,
       })),
     );
   }

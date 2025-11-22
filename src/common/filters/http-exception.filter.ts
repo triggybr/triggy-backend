@@ -7,29 +7,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
+    let message = 'Ocorreu um erro inesperado';
     let code = 'INTERNAL_ERROR';
 
-    const err = exception as any;
-
-    if (err?.response?.data) {
-      console.log(err?.response?.data)
-      const aMessage = `${err.response.data.message} - ${err.response.data.code} - ${err.response.data.status}`
-      console.log(aMessage)
-    } else {
-      console.log(exception)
-    }
-
+    console.log(exception)
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
-      const resp: any = exception.getResponse();
-      if (typeof resp === 'string') {
-        message = resp;
-      } else if (resp && typeof resp === 'object') {
-        message = resp.message || message;
-        code = resp.code || code;
-      }
+      const exceptionResponse: any = exception.getResponse();
+      const externalMessage = exceptionResponse.externalMessage;
+      message = externalMessage || message;
+      code = exceptionResponse.code || code;
     }
 
     response.status(status).json({

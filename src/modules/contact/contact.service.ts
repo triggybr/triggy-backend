@@ -1,13 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SendContactDto } from './dto/send-contact.dto';
 import { ContactResponseDto, MessageStatusEnum } from './dto/contact-response.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Contact, ContactDocument } from './schemas/contact.schema';
+import { uuidGenerator } from 'src/common/utils/uuid-generator';
 
 @Injectable()
 export class ContactService {
   private readonly logger = new Logger(ContactService.name);
 
+  constructor(
+    @InjectModel(Contact.name) private readonly contactModel: Model<ContactDocument>,
+  ) {}
+
   async sendContactMessage(dto: SendContactDto): Promise<ContactResponseDto> {
-    // Log detalhado das informações recebidas
     this.logger.log('='.repeat(60));
     this.logger.log('Nova mensagem de contato recebida');
     this.logger.log('='.repeat(60));
@@ -18,9 +25,18 @@ export class ContactService {
     this.logger.log(`Mensagem: ${dto.mensagem}`);
     this.logger.log('='.repeat(60));
 
-    // Por enquanto, retornamos um mock de sucesso
+    const contact: Contact = {
+      id: uuidGenerator(),
+      nome: dto.nome,
+      email: dto.email,
+      empresa: dto.empresa,
+      assunto: dto.assunto,
+      mensagem: dto.mensagem,
+    }
+    await this.contactModel.create(contact)
+
     return {
-      messageId: null,
+      messageId: contact.id,
       status: MessageStatusEnum.SENT,
     };
   }

@@ -9,7 +9,7 @@ export enum MessageStatusEnum {
 
 export class ContactResponseDto {
   @ApiProperty({
-    description: 'ID da mensagem no Mailchimp',
+    description: 'ID da mensagem',
     example: 'msg_abc123xyz456',
     nullable: true,
   })

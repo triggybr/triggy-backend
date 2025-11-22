@@ -35,14 +35,16 @@ export class CheckoutService {
 
     if (!coupon) {
       throw new NotFoundException({
-        message: 'Coupon not found',
+        internalMessage: 'Coupon not found',
+        externalMessage: 'Cupom não encontrado',
         code: ErrorCodes.COUPON_NOT_FOUND,
       });
     }
 
     if (!coupon.valid) {
       throw new BadRequestException({
-        message: 'Invalid coupon',
+        internalMessage: 'Invalid coupon',
+        externalMessage: 'Cupom inválido',
         code: ErrorCodes.INVALID_COUPON,
       });
     }
@@ -53,7 +55,8 @@ export class CheckoutService {
 
     if (!plan) {
       throw new NotFoundException({
-        message: 'Plan not found',
+        internalMessage: 'Plan not found',
+        externalMessage: 'Plano não encontrado',
         code: ErrorCodes.PLAN_NOT_FOUND,
       });
     }
@@ -82,15 +85,17 @@ export class CheckoutService {
     const user = await this.userModel.findOne({ externalId }).lean();
 
     if (!user) throw new NotFoundException({
-      message: 'User not found',
+      internalMessage: 'User not found',
+      externalMessage: 'Usuário não encontrado',
       code: ErrorCodes.USER_NOT_FOUND,
     });
 
     const plan = await this.planModel.findOne({ id: input.planId }).lean();
     if (!plan) {
       throw new NotFoundException({
-        message: 'Plan not found',
-        code: ErrorCodes.PLAN_NOT_FOUND
+        internalMessage: 'Plan not found',
+        externalMessage: 'Plano não encontrado',
+        code: ErrorCodes.PLAN_NOT_FOUND,
       });
     }
 
@@ -100,14 +105,16 @@ export class CheckoutService {
       coupon = await this.couponModel.findOne({ code: input.couponCode.toUpperCase() }).lean();
       if (!coupon) {
         throw new NotFoundException({
-          message: 'Coupon not found',
+          internalMessage: 'Coupon not found',
+          externalMessage: 'Cupom não encontrado',
           code: ErrorCodes.COUPON_NOT_FOUND,
         });
       }
 
       if (!coupon.valid) {
         throw new BadRequestException({
-          message: 'Invalid coupon',
+          internalMessage: 'Invalid coupon',
+          externalMessage: 'Cupom inválido',
           code: ErrorCodes.INVALID_COUPON,
         });
       }
@@ -123,14 +130,16 @@ export class CheckoutService {
     if (existingSignature) {
       if (plan.priceValue <= existingSignature.priceValue) {
         throw new BadRequestException({
-          message: 'you cant regress from plan',
+          internalMessage: 'you cant regress from plan',
+          externalMessage: 'Você não pode regressar ao plano atual',
           code: ErrorCodes.INVALID_PLAN,
         });
       }
       
       if (input.couponCode && existingSignature.planId === plan.id) {
         throw new BadRequestException({
-          message: 'Invalid coupon',
+          internalMessage: 'Invalid coupon',
+          externalMessage: 'Cupom inválido',
           code: ErrorCodes.INVALID_COUPON,
         })
       }
@@ -159,13 +168,23 @@ export class CheckoutService {
         },
         remoteIp,
       };
+
+      let subscriptionId: string;
   
-      const subscription = await this.asaasService.createSubscriptionWithCreditCard(externalId, payload);
-  
-      await this.asaasService.updateSubscription({
-        id: subscription?.id,
-        value: plan.priceValue
-      })
+      try {
+        const subscription = await this.asaasService.createSubscriptionWithCreditCard(externalId, payload);
+        subscriptionId = subscription?.id;
+
+        await this.asaasService.updateSubscription({
+          id: subscription?.id,
+          value: plan.priceValue
+        })
+      } catch (error) {
+        throw new BadRequestException({
+          internalMessage: 'failed to create asaas subscription',
+          externalMessage: 'Não foi possível realizar o pagamento, revise seus dados e tente novamente'
+        })
+      }
 
       const signatureToUpdate = {
         planId: plan.id,
@@ -174,7 +193,7 @@ export class CheckoutService {
         type: plan.name,
         priceValue: plan.priceValue,
         active: true,
-        externalId: subscription?.id,
+        externalId: subscriptionId,
         webhookQuota: plan.webhookQuota,
         integrationQuota: plan.integrationQuota,
         logViewQuota: plan.logViewQuota,
@@ -228,15 +247,22 @@ export class CheckoutService {
       remoteIp,
     };
 
-    const subscription = await this.asaasService.createSubscriptionWithCreditCard(externalId, payload);
+    try {
+      const subscription = await this.asaasService.createSubscriptionWithCreditCard(externalId, payload);
+      signature['externalId'] = subscription?.id;
 
-    await this.asaasService.updateSubscription({
-      id: subscription?.id,
-      value: plan.priceValue
-    })
+      await this.asaasService.updateSubscription({
+        id: subscription?.id,
+        value: plan.priceValue
+      })
+    } catch (error) {
+      throw new BadRequestException({
+        internalMessage: 'failed to create asaas subscription',
+        externalMessage: 'Não foi possível realizar o pagamento, revise seus dados e tente novamente'
+      })
+    }
 
-    signature['externalId'] = subscription?.id,
-      await this.signatureModel.create(signature);
+    await this.signatureModel.create(signature);
 
     return {
       success: true,
