@@ -14,6 +14,12 @@ export class UserIntegrationSeeder implements OnModuleInit {
     }
 
     async seed() {
+        const environment = process.env.ENVIRONMENT || 'staging';
+        if (environment == 'production') {
+          console.log('Skipping integration seeding in non-development environment');
+          return;
+        }
+        
         const count = await this.userIntegrationModel.countDocuments();
 
         if (count === 0) {
